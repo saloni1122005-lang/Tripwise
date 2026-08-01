@@ -505,19 +505,38 @@ a:hover {
 
 @media (max-width: 767px) {
   .landing-page {
-    margin: -20px -20px 0;
+    margin: 0;
+    overflow-x: hidden;
   }
 
   .landing-hero {
     padding: 48px 0;
   }
 
+  .landing-hero .container,
+  .section-heading,
+  .feature-card,
+  .step-card,
+  .benefit-card,
+  .preview-card {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
   .hero-copy {
     font-size: 1rem;
+    max-width: none;
   }
 
   .cta-panel {
     padding: 2rem 1.25rem;
+  }
+
+  .feature-card,
+  .step-card,
+  .benefit-card,
+  .preview-card {
+    margin-bottom: 1.5rem;
   }
 
   .sidebar,
@@ -584,7 +603,8 @@ a:hover {
 }
 @media (max-width: 768px) {
 
-  .login-container {
+  .login-container,
+  .auth-wrapper {
     width: 100%;
     flex-direction: column;
     margin: 20px auto;
@@ -592,7 +612,8 @@ a:hover {
   }
 
   .login-left,
-  .login-right {
+  .login-right,
+  .auth-card {
     width: 100%;
   }
 
@@ -602,6 +623,10 @@ a:hover {
 
   .login-right {
     padding: 25px 20px;
+  }
+
+  .auth-card {
+    padding: 24px;
   }
 
   .overlay h1 {
