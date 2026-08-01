@@ -629,6 +629,22 @@ a:hover {
     padding: 24px;
   }
 
+  .input-group {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .input-group .form-control {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .input-group .btn {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 48px;
+  }
+
   .overlay h1 {
     font-size: 28px;
   }
