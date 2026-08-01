@@ -15,12 +15,10 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
-<body>
-
   <body>
 
     <!-- ADD THIS HERE -->
-    {% if current_user.is_authenticated and request.endpoint != 'main.landing' %}
+    {% if current_user.is_authenticated and request.endpoint != 'auth.home' %}
     <nav class="navbar navbar-dark bg-success d-md-none">
       <div class="container-fluid">
         <a class="navbar-brand fw-bold">
@@ -59,50 +57,49 @@
     <!-- END -->
 
     <div class="app-shell">
-      <div class="app-shell">
-        {% if current_user.is_authenticated and request.endpoint != 'main.landing' %}
-        <aside class="sidebar">
-          <div class="brand">
-            <div class="brand-icon"><i class="fa-solid fa-route"></i></div>
-            <div>
-              <h4>TripWise</h4>
-              <p>Group Travel OS</p>
-            </div>
+      {% if current_user.is_authenticated and request.endpoint != 'auth.home' %}
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-icon"><i class="fa-solid fa-route"></i></div>
+          <div>
+            <h4>TripWise</h4>
+            <p>Group Travel OS</p>
           </div>
-          <nav class="nav-links">
-            <a href="{{ url_for('main.dashboard') }}" class="nav-link"><i class="fa-solid fa-chart-pie"></i>
-              Dashboard</a>
-            <a href="{{ url_for('explorer.hub') }}" class="nav-link"><i class="fa-solid fa-compass"></i> Explore</a>
-            <a href="{{ url_for('itinerary.itinerary') }}" class="nav-link"><i class="fa-solid fa-calendar-days"></i>
-              Itinerary</a>
-            <a href="{{ url_for('packing.packing') }}" class="nav-link"><i class="fa-solid fa-suitcase-rolling"></i>
-              Packing
-              List</a>
-            <a href="{{ url_for('expenses.expenses') }}" class="nav-link"><i class="fa-solid fa-wallet"></i>
-              Expenses</a>
-            <a href="{{ url_for('auth.profile') }}" class="nav-link"><i class="fa-solid fa-user"></i> Profile</a>
-            <a href="{{ url_for('auth.logout') }}" class="nav-link danger"><i
-                class="fa-solid fa-right-from-bracket"></i>
-              Logout</a>
-          </nav>
-        </aside>
+        </div>
+        <nav class="nav-links">
+          <a href="{{ url_for('main.dashboard') }}" class="nav-link"><i class="fa-solid fa-chart-pie"></i>
+            Dashboard</a>
+          <a href="{{ url_for('explorer.hub') }}" class="nav-link"><i class="fa-solid fa-compass"></i> Explore</a>
+          <a href="{{ url_for('itinerary.itinerary') }}" class="nav-link"><i class="fa-solid fa-calendar-days"></i>
+            Itinerary</a>
+          <a href="{{ url_for('packing.packing') }}" class="nav-link"><i class="fa-solid fa-suitcase-rolling"></i>
+            Packing
+            List</a>
+          <a href="{{ url_for('expenses.expenses') }}" class="nav-link"><i class="fa-solid fa-wallet"></i>
+            Expenses</a>
+          <a href="{{ url_for('auth.profile') }}" class="nav-link"><i class="fa-solid fa-user"></i> Profile</a>
+          <a href="{{ url_for('auth.logout') }}" class="nav-link danger"><i
+              class="fa-solid fa-right-from-bracket"></i>
+            Logout</a>
+        </nav>
+      </aside>
+      {% endif %}
+      <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="container-fluid pt-3">
+          {% for category, message in messages %}
+          <div class="alert alert-{{ category }} rounded-3 shadow-sm">{{ message }}</div>
+          {% endfor %}
+        </div>
         {% endif %}
-        <main class="main-content">
-          {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-          <div class="container-fluid pt-3">
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }} rounded-3 shadow-sm">{{ message }}</div>
-            {% endfor %}
-          </div>
-          {% endif %}
-          {% endwith %}
-          {% block content %}{% endblock %}
-        </main>
-      </div>
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-      <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   </body>
 
 </html>
