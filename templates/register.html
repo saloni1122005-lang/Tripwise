@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <!-- Brand -->
+    <div class="auth-brand text-center mb-4">
+      <div class="brand-icon mx-auto mb-2"><i class="fa-solid fa-route"></i></div>
+      <h2>TripWise</h2>
+      <p class="text-muted">Create your travel hub in minutes.</p>
+    </div>
+
+    <h3 class="mb-3">Create account</h3>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} rounded-3 py-2 px-3 mb-3 small">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" id="registerForm" novalidate>
+      {{ form.hidden_tag() }}
+
+      <!-- Full Name -->
+      <div class="mb-3">
+        {{ form.full_name(class_="form-control", placeholder="Full Name", id="fullName") }}
+        {% for error in form.full_name.errors %}
+          <div class="text-danger small mt-1"><i class="fa-solid fa-circle-exclamation me-1"></i>{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Email -->
+      <div class="mb-3">
+        {{ form.email(class_="form-control", placeholder="Email Address", id="emailField") }}
+        {% for error in form.email.errors %}
+          <div class="text-danger small mt-1"><i class="fa-solid fa-circle-exclamation me-1"></i>{{ error }}</div>
+        {% endfor %}
+        <div class="text-danger small mt-1 d-none" id="emailError">Please enter a valid email address.</div>
+      </div>
+
+      <!-- Username (optional) -->
+      <div class="mb-3">
+        {{ form.username(class_="form-control", placeholder="Username (optional)", id="usernameField") }}
+        {% for error in form.username.errors %}
+          <div class="text-danger small mt-1"><i class="fa-solid fa-circle-exclamation me-1"></i>{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Password -->
+      <div class="mb-1">
+        <div class="input-group">
+          {{ form.password(class_="form-control", placeholder="Password (min. 8 characters)", id="passwordField") }}
+          <button type="button" class="btn btn-outline-secondary" id="togglePassword" title="Show/Hide Password">
+            <i class="fa-regular fa-eye" id="eyeIcon"></i>
+          </button>
+        </div>
+        <!-- Strength bar -->
+        <div class="progress mt-2" style="height:5px; border-radius:999px;">
+          <div class="progress-bar" id="strengthBar" role="progressbar" style="width:0%; transition: width 0.3s, background-color 0.3s;"></div>
+        </div>
+        <div class="form-text small" id="strengthLabel">Enter a password (min 8 characters)</div>
+        {% for error in form.password.errors %}
+          <div class="text-danger small mt-1"><i class="fa-solid fa-circle-exclamation me-1"></i>{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="mb-3 mt-3">
+        <div class="input-group">
+          {{ form.confirm_password(class_="form-control", placeholder="Confirm Password", id="confirmField") }}
+          <button type="button" class="btn btn-outline-secondary" id="toggleConfirm" title="Show/Hide Password">
+            <i class="fa-regular fa-eye"></i>
+          </button>
+        </div>
+        <div class="text-danger small mt-1 d-none" id="confirmError">Passwords do not match.</div>
+        {% for error in form.confirm_password.errors %}
+          <div class="text-danger small mt-1"><i class="fa-solid fa-circle-exclamation me-1"></i>{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Terms & Conditions -->
+      <div class="form-check mb-3">
+        {{ form.terms(class_="form-check-input", id="termsCheck") }}
+        <label class="form-check-label small" for="termsCheck">
+          I agree to the <a href="#">Terms &amp; Conditions</a> and <a href="#">Privacy Policy</a>
+        </label>
+        {% for error in form.terms.errors %}
+          <div class="text-danger small mt-1"><i class="fa-solid fa-circle-exclamation me-1"></i>{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="btn btn-primary w-100">Create Account</button>
+    </form>
+
+    <p class="mt-3 text-center">Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+
+  </div>
+</div>
+
+<script>
+  /* Show / Hide Password */
+  function togglePass(fieldId, btn) {
+    const field = document.getElementById(fieldId);
+    const icon  = btn.querySelector('i');
+    if (field.type === 'password') {
+      field.type = 'text';
+      icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+      field.type = 'password';
+      icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+  }
+  document.getElementById('togglePassword').addEventListener('click', function() { togglePass('passwordField', this); });
+  document.getElementById('toggleConfirm').addEventListener('click',  function() { togglePass('confirmField',  this); });
+
+  /* Password Strength */
+  const pwField   = document.getElementById('passwordField');
+  const sBar      = document.getElementById('strengthBar');
+  const sLabel    = document.getElementById('strengthLabel');
+
+  pwField.addEventListener('input', function () {
+    const v = this.value;
+    if (!v) { sBar.style.width = '0%'; sLabel.textContent = 'Enter a password (min 8 characters)'; sLabel.className = 'form-text small'; return; }
+    let score = 0;
+    if (v.length >= 8)  score++;
+    if (v.length >= 12) score++;
+    if (/[A-Z]/.test(v)) score++;
+    if (/[0-9]/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+    const levels = [
+      { pct:'15%', color:'#dc3545', label:'Too short'  },
+      { pct:'35%', color:'#fd7e14', label:'Weak'       },
+      { pct:'60%', color:'#ffc107', label:'Fair'       },
+      { pct:'80%', color:'#198754', label:'Good'       },
+      { pct:'100%',color:'#146c43', label:'Strong ✓'  },
+    ];
+    const lvl = Math.min(v.length < 8 ? 0 : score - 1, 4);
+    const s = levels[Math.max(lvl, 0)];
+    sBar.style.width = s.pct;
+    sBar.style.backgroundColor = s.color;
+    sLabel.textContent = s.label;
+    sLabel.className = 'form-text small';
+  });
+
+  /* Confirm match */
+  const confirmField = document.getElementById('confirmField');
+  const confirmError = document.getElementById('confirmError');
+  confirmField.addEventListener('input', function () {
+    if (this.value && this.value !== pwField.value) {
+      confirmError.classList.remove('d-none');
+    } else {
+      confirmError.classList.add('d-none');
+    }
+  });
+
+  /* Email validation on blur */
+  const emailField = document.getElementById('emailField');
+  const emailError = document.getElementById('emailError');
+  emailField.addEventListener('blur', function () {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (this.value && !re.test(this.value)) {
+      emailError.classList.remove('d-none');
+    } else {
+      emailError.classList.add('d-none');
+    }
+  });
+
+  /* Prevent submit on client errors */
+  document.getElementById('registerForm').addEventListener('submit', function (e) {
+    let ok = true;
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!re.test(emailField.value)) { emailError.classList.remove('d-none'); ok = false; }
+    if (pwField.value.length < 8)   { ok = false; }
+    if (confirmField.value !== pwField.value) { confirmError.classList.remove('d-none'); ok = false; }
+    if (!ok) e.preventDefault();
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: tripwise
+    env: python
+    region: singapore  # Closest to India
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_ENV
+        value: production
+      - key: DATABASE_URL
+        value: ""  # Leave empty to use SQLite, or add a PostgreSQL URL
+      - key: MAIL_USERNAME
+        value: ""  # Your Gmail address
+      - key: MAIL_PASSWORD
+        value: ""  # Your Gmail App Password
+      - key: GOOGLE_PLACES_API_KEY
+        value: ""  # Optional: for real place photos

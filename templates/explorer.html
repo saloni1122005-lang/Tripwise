@@ -1,0 +1,1016 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- Toast -->
+<div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index:9999;pointer-events:none"></div>
+
+<div class="container-fluid px-4 py-4 mb-5">
+
+  <!-- ── Top Header (Screen 3) ──────────────────────────────────── -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1 fw-bold" style="font-family:'Montserrat',sans-serif">Hello {{ current_user.full_name or current_user.username }},</h2>
+      <p class="text-muted mb-0">Plan a trip <i class="fa-solid fa-arrow-right mx-1"></i> Start your journey</p>
+    </div>
+    <form method="get" action="{{ url_for('explorer.hub') }}" class="position-relative" style="width:280px">
+      <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+      <input type="text" name="dest" class="form-control rounded-pill ps-5 bg-light border-0" placeholder="Search destination..." value="{{ dest }}">
+    </form>
+  </div>
+
+  <div id="tripBuilderSection" class="row gy-4 mb-5 d-none">
+    <div class="col-xl-8">
+      <div class="create-trip-panel rounded-4 p-4 mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
+          <div>
+            <p class="eyebrow">Create New Trip</p>
+            <h3 class="fw-bold mb-1">Plan your next group getaway.</h3>
+            <p class="text-muted mb-0">Enter your trip details and invite your travel companions.</p>
+          </div>
+          <div class="text-md-end">
+            <span class="badge badge-pill bg-success bg-opacity-15 text-success">Premium Travel Planner</span>
+          </div>
+        </div>
+
+        <form id="groupTripForm" class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Trip Name</label>
+            <input type="text" id="tripName" class="form-control form-control-lg" value="Costa Rica Adventure">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Destination</label>
+            <input type="text" id="tripDestination" class="form-control form-control-lg" value="Bali, Indonesia">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Start Date</label>
+            <input type="date" id="tripStart" class="form-control form-control-lg" value="2026-09-10">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">End Date</label>
+            <input type="date" id="tripEnd" class="form-control form-control-lg" value="2026-09-18">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Trip Type</label>
+            <div class="btn-group w-100" role="group" aria-label="Trip type selector">
+              <input type="radio" class="btn-check" name="tripType" id="tripTypeSolo" value="solo">
+              <label class="btn btn-outline-secondary rounded-pill" for="tripTypeSolo">Solo</label>
+              <input type="radio" class="btn-check" name="tripType" id="tripTypeGroup" value="group" checked>
+              <label class="btn btn-outline-secondary rounded-pill" for="tripTypeGroup">Group</label>
+            </div>
+          </div>
+
+          <div id="participantsSection" class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h5 class="fw-bold mb-1">Participants</h5>
+                <p class="text-muted small mb-0">Add friends who will travel with you.</p>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-success" id="addMemberBtn"><i class="fa-solid fa-plus me-1"></i> Add Member</button>
+            </div>
+            <div id="membersContainer" class="row g-3"></div>
+          </div>
+
+          <div class="col-12 text-end mt-4">
+            <button type="button" class="btn btn-success btn-lg px-5" id="createTripBtn">Create Trip</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="expense-panel rounded-4 p-4 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h5 class="fw-bold mb-1">Add Expense</h5>
+            <p class="text-muted small mb-0">Populate expense fields from your trip participants.</p>
+          </div>
+          <span class="badge badge-pill bg-secondary bg-opacity-10 text-secondary">Auto populated</span>
+        </div>
+        <form class="row g-3" id="expenseForm">
+          <div class="col-md-6">
+            <label class="form-label">Expense Title</label>
+            <input type="text" class="form-control" placeholder="Dinner at Sunset Lounge" value="Welcome Dinner">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Amount</label>
+            <input type="number" class="form-control" placeholder="₹0.00" value="4200">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Paid By</label>
+            <select class="form-select" id="paidBySelect"></select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Split Between</label>
+            <div id="splitBetweenGroup" class="d-flex flex-wrap gap-2"></div>
+          </div>
+          <div class="col-12 text-end">
+            <button type="button" class="btn btn-outline-success">Save Expense</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-xl-4">
+      <div id="previewSection" class="preview-card rounded-4 p-4 shadow-sm h-100 d-none">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <div>
+            <p class="eyebrow mb-1">Preview</p>
+            <h5 class="fw-bold mb-0">Group Trip Summary</h5>
+          </div>
+          <div class="preview-icon rounded-circle d-flex align-items-center justify-content-center text-success bg-success bg-opacity-15">
+            <i class="fa-solid fa-plane-departure fa-lg"></i>
+          </div>
+        </div>
+        <div class="d-flex gap-3 align-items-center mb-3">
+          <div class="avatar-preview bg-success bg-opacity-15 text-success">C</div>
+          <div>
+            <div class="text-muted small">Trip</div>
+            <div id="previewTripName" class="fw-bold">Costa Rica Adventure</div>
+          </div>
+        </div>
+        <div class="text-muted small mb-3" id="previewTripMeta">Sep 10 — Sep 18 · Bali, Indonesia · Group</div>
+        <div class="d-flex flex-wrap gap-2 mb-3" id="previewBadges">
+          <span class="badge badge-pill bg-success bg-opacity-15 text-success">4 members</span>
+          <span class="badge badge-pill bg-secondary bg-opacity-10 text-secondary">Premium</span>
+        </div>
+        <div class="avatar-group mb-4" id="previewAvatars"></div>
+        <p class="text-muted small">Your trip group will be visible here with member avatars and quick destination details.</p>
+        <div class="row g-3 mt-4">
+          <div class="col-6">
+            <div class="detail-card p-3 rounded-4">
+              <div class="text-muted small mb-1">Estimated budget</div>
+              <div class="fw-bold">₹62,000</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="detail-card p-3 rounded-4">
+              <div class="text-muted small mb-1">Trip type</div>
+              <div class="fw-bold">Group</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="detail-card p-3 rounded-4">
+              <div class="text-muted small mb-1">Total members</div>
+              <div class="fw-bold" id="previewMemberCount">4</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% if not dest %}
+  <!-- ── Recommended Destinations ───────────────────────────────── -->
+  <div class="mb-5">
+    <h5 class="fw-bold mb-3">Recommended Destinations</h5>
+    <p class="text-muted">Click a destination to explore its nearby attractions.</p>
+    <div class="row g-3">
+      {% set pop_dests = [
+        {'name':'Goa', 'img':'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600&auto=format&fit=crop'},
+        {'name':'Jaipur', 'img':'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=600&auto=format&fit=crop'},
+        {'name':'Udaipur', 'img':'https://tse1.mm.bing.net/th/id/OIP._8bvTjnR8c7cPkKvYsH-mQHaEK?r=0&rs=1&pid=ImgDetMain&o=7&rm=3'},
+        {'name':'Kerala', 'img':'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600&auto=format&fit=crop'},
+        {'name':'Rajasthan', 'img':'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&auto=format&fit=crop'}
+      ] %}
+      {% for pd in pop_dests %}
+      <div class="col-6 col-md-3">
+        <div class="regional-card-button rounded-4 overflow-hidden position-relative" style="height:160px;cursor:pointer;">
+          <!-- Full card click → explore nearby attractions for that city -->
+          <a href="{{ url_for('explorer.hub', dest=pd.name) }}" class="position-absolute top-0 start-0 w-100 h-100 d-block" style="z-index:1;" aria-label="Explore {{ pd.name }}"></a>
+          <img src="{{ pd.img }}" class="w-100 h-100 object-fit-cover" alt="{{ pd.name }}" style="display:block;">
+          <!-- Dark overlay -->
+          <div class="position-absolute top-0 start-0 w-100 h-100" style="background:linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.15) 60%, transparent 100%);pointer-events:none;"></div>
+          <!-- Plan Trip badge → opens modal (z-index above the anchor) -->
+          <button type="button"
+            class="badge bg-success border-0 position-absolute rounded-pill fw-bold"
+            style="top:10px;right:10px;padding:6px 12px;font-size:0.75rem;box-shadow:0 2px 8px rgba(0,0,0,0.25);z-index:2;cursor:pointer;"
+            onclick="event.preventDefault(); openCreateModal('{{ pd.name }}');">
+            <i class="fa-solid fa-plane-departure me-1"></i>Plan Trip
+          </button>
+          <!-- City name bottom-left -->
+          <div class="position-absolute bottom-0 start-0 w-100 p-3" style="pointer-events:none;z-index:1;">
+            <h5 class="text-white fw-bold text-shadow mb-0">{{ pd.name }}</h5>
+            <p class="text-white-50 small mb-0" style="font-size:0.78rem;">Tap to explore nearby places</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  
+  <!-- ── Destination Results (if searched) ─────────────────────── -->
+    {% if dest_info %}
+    <div class="dest-banner glass-card overflow-hidden mb-4 rounded-4 position-relative" style="height:220px">
+      <img src="{{ dest_info.image_url }}" class="w-100 h-100 object-fit-cover position-absolute top-0 start-0" alt="{{ dest }}">
+      <div class="position-absolute top-0 start-0 w-100 h-100" style="background:linear-gradient(to right, rgba(0,0,0,0.8), transparent)"></div>
+      <div class="position-absolute bottom-0 start-0 p-4 w-100 d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
+        <div>
+          <h2 class="text-white fw-bold mb-1">{{ dest | title }}</h2>
+          <p class="text-white-50 mb-2" style="max-width:600px">{{ dest_info.description }}</p>
+          <div class="d-flex gap-2">
+            <span class="badge bg-light text-dark"><i class="fa-solid fa-sun me-1"></i>Best: {{ dest_info.best_time }}</span>
+            <span class="badge bg-light text-dark" id="placesCountBadge"><i class="fa-solid fa-star me-1"></i>0 Places</span>
+          </div>
+        </div>
+        <div>
+          <button class="btn btn-success btn-lg rounded-pill px-4 py-2 fw-bold shadow-lg" onclick="openCreateModal('{{ dest }}')">
+            <i class="fa-solid fa-plane-departure me-2"></i>Plan a Trip
+          </button>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- ── Explore Destination Section (3-Tab) ────────────────────── -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="mb-5" id="exploreDestSection">
+      <!-- Section header -->
+      <div class="glass-card rounded-4 p-4 mb-4">
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+          <div>
+            <p class="eyebrow mb-1">Explore Destination</p>
+            <h5 class="fw-bold mb-0">Top places to stay, shop &amp; visit in <span class="text-primary">{{ dest | title }}</span></h5>
+            <p class="text-muted small mb-0 mt-1">Curated destination highlights &bull; Tap a tab to switch categories</p>
+          </div>
+        </div>
+
+        <!-- 3 Tab Buttons -->
+        <div class="d-flex gap-2 flex-wrap mt-3" id="exploreTabButtons">
+          <button class="btn btn-sm rounded-pill px-4 explore-tab-btn active" data-tab="attractions"
+            style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;font-weight:600;">
+            <i class="fa-solid fa-binoculars me-2"></i>Tourist Attractions
+          </button>
+          <button class="btn btn-sm rounded-pill px-4 explore-tab-btn" data-tab="hotels"
+            style="background:transparent;color:var(--text-secondary);border:1.5px solid var(--border);font-weight:600;">
+            <i class="fa-solid fa-hotel me-2"></i>Hotels
+          </button>
+          <button class="btn btn-sm rounded-pill px-4 explore-tab-btn" data-tab="shopping"
+            style="background:transparent;color:var(--text-secondary);border:1.5px solid var(--border);font-weight:600;">
+            <i class="fa-solid fa-bag-shopping me-2"></i>Shopping
+          </button>
+        </div>
+      </div>
+
+      <!-- Card grid (filled by JS) -->
+      <div class="row g-4" id="exploreDestGrid">
+        <!-- skeleton shown on first load -->
+      </div>
+    </div><!-- /#exploreDestSection -->
+
+  {% endif %}
+
+
+  <!-- ── Previous Trips (Screen 3 - Horizontal Cards) ──────────── -->
+  <div>
+    <div class="d-flex flex-column flex-md-row align-items-start justify-content-between gap-3 mb-3">
+      <div>
+        <h5 class="fw-bold mb-2">Previous Trips</h5>
+        <p class="text-muted small mb-0">Filter trips by status inside the plan page.</p>
+      </div>
+      <div class="btn-group btn-group-sm" role="group" aria-label="Trip status filter">
+        <button type="button" class="btn btn-outline-secondary active" onclick="filterTripStatus('All', this)">All</button>
+        <button type="button" class="btn btn-outline-secondary" onclick="filterTripStatus('Upcoming', this)">Upcoming</button>
+        <button type="button" class="btn btn-outline-secondary" onclick="filterTripStatus('Ongoing', this)">Ongoing</button>
+        <button type="button" class="btn btn-outline-secondary" onclick="filterTripStatus('Completed', this)">Completed</button>
+      </div>
+    </div>
+    {% if trips %}
+      <div class="d-flex flex-column gap-3">
+        {% for trip in trips %}
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden trip-horizontal-card" data-trip-status="{{ trip.current_status }}">
+          <div class="row g-0 h-100">
+            <div class="col-4 col-sm-3 position-relative">
+              {% set cover = trip.cover_image %}
+              {% if not cover or cover == '/static/images/trip-cover.jpg' %}
+                {% set cover = dest_image(trip.destination) %}
+              {% endif %}
+              <img src="{{ cover }}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=1400&auto=format&fit=crop'" class="w-100 h-100 object-fit-cover" alt="{{ trip.destination }}">
+              <div class="position-absolute inset-0 bg-dark bg-opacity-30"></div>
+              <div class="position-absolute top-50 start-50 translate-middle text-white text-center">
+                <i class="fa-solid fa-location-dot fa-2x mb-1 opacity-75"></i>
+                <div class="fw-bold small">{{ trip.destination }}</div>
+              </div>
+            </div>
+            <div class="col-8 col-sm-9 p-3 d-flex flex-column justify-content-center">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <div class="text-muted small fw-bold mb-1"><i class="fa-regular fa-calendar me-1"></i>From {{ trip.start_date.strftime('%d %b') }} to {{ trip.end_date.strftime('%d %b %Y') }}</div>
+                  <div class="mb-2"><span class="badge {{ trip.status_badge_class }}">{{ trip.current_status }}</span></div>
+                  <h6 class="fw-bold mb-1">{{ trip.name }}</h6>
+                  <div class="text-primary small fw-bold" style="white-space: normal;">Budget: ₹{{ "%.0f"|format(trip.budget) }}</div>
+                </div>
+                <div class="d-flex gap-2 flex-wrap align-items-center">
+                  <a href="{{ url_for('trips.trip_detail', trip_id=trip.id) }}" class="btn btn-sm btn-light rounded-circle" title="View Trip Detail"><i class="fa-solid fa-eye"></i></a>
+                  <a href="{{ url_for('trips.edit_trip', trip_id=trip.id) }}" class="btn btn-sm btn-light rounded-circle" title="Edit Trip"><i class="fa-solid fa-pen"></i></a>
+                  <button class="btn btn-sm btn-outline-danger rounded-pill px-3" data-trip-id="{{ trip.id }}" data-trip-name="{{ trip.name }}" onclick="confirmDelete(this.dataset.tripId, this.dataset.tripName)"><i class="fa-solid fa-trash me-1"></i>Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-5 bg-light rounded-4">
+        <p class="text-muted mb-0">No trips planned yet.</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- ── Floating Action Button (Screen 3) ──────────────────────── -->
+<button class="fab-btn" onclick="openCreateModal('{{ dest }}')">
+  <i class="fa-solid fa-plus me-2"></i> Plan a trip
+</button>
+
+<!-- ── Modals ─────────────────────────────────────────────────── -->
+<!-- Create Trip Modal (Screen 4 Layout) -->
+<div class="modal fade" id="createTripModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="fw-bold mb-0">Plan a trip</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-4 overflow-hidden rounded-4 shadow-sm">
+          <img id="createTripPreviewImage" src="https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=1400&auto=format&fit=crop" class="w-100" style="height:220px;object-fit:cover" alt="Trip preview image">
+        </div>
+        <form method="POST" action="{{ url_for('explorer.hub') }}" enctype="multipart/form-data">
+          {{ form.hidden_tag() }}
+          {{ form.status(class="d-none", value="Planning") }}
+          <div class="mb-4">
+            <label class="form-label text-muted small fw-bold">When will you start your journey?</label>
+            {{ form.start_date(class="form-control rounded-pill bg-light border-0 px-3", type="date") }}
+          </div>
+          <div class="mb-4">
+            <label class="form-label text-muted small fw-bold">Where do you want to go?</label>
+            {{ form.destination(class="form-control rounded-pill bg-light border-0 px-3", id="createTripDest", placeholder="e.g. Goa") }}
+          </div>
+          <div class="mb-4">
+            <label class="form-label text-muted small fw-bold">When will you return?</label>
+            {{ form.end_date(class="form-control rounded-pill bg-light border-0 px-3", type="date") }}
+          </div>
+          <div class="mb-4">
+            <label class="form-label text-muted small fw-bold">Trip Type</label>
+            <div class="btn-group w-100" role="group" aria-label="Trip type selector">
+              <input type="radio" class="btn-check" name="trip_type" id="modalTripTypeSolo" value="solo" checked>
+              <label class="btn btn-outline-secondary rounded-pill" for="modalTripTypeSolo">Solo</label>
+              <input type="radio" class="btn-check" name="trip_type" id="modalTripTypeGroup" value="group">
+              <label class="btn btn-outline-secondary rounded-pill" for="modalTripTypeGroup">Group</label>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label text-muted small fw-bold">Estimated Budget</label>
+            {{ form.budget(class="form-control rounded-pill bg-light border-0 px-3", placeholder="Enter budget in ₹") }}
+          </div>
+          <div id="modalParticipantsSection" class="mb-4 d-none">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h6 class="fw-bold mb-1">Participants</h6>
+                <p class="text-muted small mb-0">Add members for the group trip.</p>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-success" id="modalAddMemberBtn"><i class="fa-solid fa-plus me-1"></i> Add Member</button>
+            </div>
+            <div id="modalMembersContainer" class="row g-3"></div>
+          </div>
+          <div class="d-none">
+            {{ form.name(class="form-control", value="My Awesome Trip") }}
+          </div>
+          <button type="submit" class="btn btn-dark w-100 rounded-pill py-2">Create Trip</button>
+        </form>
+        
+        <div class="mt-4">
+          <p class="text-muted small fw-bold mb-2">Suggestions</p>
+          <div class="row g-2">
+            {% set suggs = ['Kerala','Ladakh','Agra','Mumbai','Shimla','Darjeeling'] %}
+            {% for s in suggs %}
+            <div class="col-4">
+              <div class="bg-light rounded-3 text-center py-2 text-muted small fw-bold cursor-pointer hover-bg-primary transition-all" onclick="document.getElementById('createTripDest').value='{{ s }}'">
+                {{ s }}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add to Itinerary Modal -->
+<div class="modal fade" id="tripPickerModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content rounded-4 border-0">
+      <div class="modal-header border-0 pb-0">
+        <h6 class="fw-bold mb-0">Add <span id="pickerPlaceName" class="text-primary"></span></h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <select id="tripPickerSelect" class="form-select rounded-pill bg-light border-0 mb-3">
+          <option value="">Choose trip...</option>
+          {% for t in trips %}
+          <option value="{{ t.id }}">{{ t.name }}</option>
+          {% endfor %}
+        </select>
+        <button type="button" class="btn btn-primary w-100 rounded-pill py-2" onclick="confirmAddToItinerary()">Add to Itinerary</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Delete Trip Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0">
+      <div class="modal-body p-4 text-center">
+        <i class="fa-solid fa-trash text-danger mb-3 fa-2x"></i>
+        <h6 class="fw-bold mb-1">Delete Trip?</h6>
+        <p class="text-muted small mb-4">Are you sure you want to delete '<span id="delTripName"></span>'?</p>
+        <form id="delForm" method="POST">
+          {{ form.hidden_tag() }}
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-light rounded-pill flex-grow-1" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger rounded-pill flex-grow-1">Delete</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.fab-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(5,150,105,0.4);
+  cursor: pointer;
+  z-index: 1000;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.fab-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(5,150,105,0.5);
+}
+.trip-horizontal-card {
+  min-height: 110px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.trip-horizontal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1) !important;
+}
+.regional-card:hover img {
+  transform: scale(1.1);
+  transition: transform 0.5s;
+}
+.regional-card img {
+  transition: transform 0.5s;
+}
+.attraction-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.attraction-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12) !important;
+}
+.attraction-card .favorite-btn {
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.4);
+}
+.skeleton-card {
+  height: 300px;
+  border-radius: 1.25rem;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 37%, #f3f4f6 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+.hover-bg-primary:hover {
+  background: var(--primary) !important;
+  color: white !important;
+}
+.cursor-pointer { cursor: pointer; }
+.transition-all { transition: all 0.3s; }
+.text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+</style>
+
+<script>
+function openCreateModal(prefillDest) {
+  const destEl = document.getElementById('createTripDest');
+  const nameEl = document.querySelector('input[name="name"]');
+  const groupTypeEl = document.getElementById('modalTripTypeGroup');
+  const soloTypeEl = document.getElementById('modalTripTypeSolo');
+
+  if (prefillDest && destEl) destEl.value = prefillDest;
+  if (nameEl && (!nameEl.value || nameEl.value === 'My Awesome Trip')) {
+    nameEl.value = 'Trip to ' + (prefillDest || 'Unknown');
+  }
+  if (groupTypeEl && soloTypeEl) {
+    groupTypeEl.checked = true;
+    soloTypeEl.checked = false;
+    window.updateModalMemberSection();
+  }
+
+  if (destEl) {
+    const previewImg = document.getElementById('createTripPreviewImage');
+    destEl.addEventListener('input', function() {
+      if (nameEl) nameEl.value = 'Trip to ' + (this.value || 'Unknown');
+      updateCreateImagePreview(this.value, previewImg);
+    });
+    updateCreateImagePreview(destEl.value, previewImg);
+  }
+  new bootstrap.Modal(document.getElementById('createTripModal')).show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const builderCreateBtn = document.getElementById('createTripBtn');
+  if (!builderCreateBtn) return;
+
+  builderCreateBtn.addEventListener('click', function() {
+    const sourceName = document.getElementById('tripName')?.value.trim();
+    const sourceDestination = document.getElementById('tripDestination')?.value.trim();
+    const sourceTypeSolo = document.getElementById('tripTypeSolo');
+    const modalName = document.querySelector('input[name="name"]');
+    const modalDest = document.getElementById('createTripDest');
+    const modalTypeSolo = document.getElementById('modalTripTypeSolo');
+    const modalTypeGroup = document.getElementById('modalTripTypeGroup');
+    const previewImg = document.getElementById('createTripPreviewImage');
+
+    if (modalName) {
+      modalName.value = sourceName || `Trip to ${sourceDestination || 'Unknown'}`;
+    }
+    if (modalDest) {
+      modalDest.value = sourceDestination;
+      updateCreateImagePreview(sourceDestination, previewImg);
+    }
+    if (modalTypeSolo && modalTypeGroup) {
+      if (sourceTypeSolo?.checked) {
+        modalTypeSolo.checked = true;
+      } else {
+        modalTypeGroup.checked = true;
+      }
+      window.updateModalMemberSection();
+    }
+
+    new bootstrap.Modal(document.getElementById('createTripModal')).show();
+  });
+});
+
+function updateCreateImagePreview(destination, previewImg) {
+  if (!previewImg) return;
+  const key = (destination || '').trim();
+  if (!key) {
+    previewImg.src = 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=1400&auto=format&fit=crop';
+    return;
+  }
+  // Try the static ones for fast loading if they match perfectly
+  const map = {
+    'goa': 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=1400&auto=format&fit=crop',
+    'jaipur': 'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=1400&auto=format&fit=crop',
+    'manali': 'https://images.unsplash.com/photo-1605649487212-4d4ce7c6883e?w=1400&auto=format&fit=crop',
+    'udaipur': 'https://images.unsplash.com/photo-1615966650071-855b15fba392?w=1400&auto=format&fit=crop',
+    'kerala': 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=1400&auto=format&fit=crop',
+    'rajasthan': 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1400&auto=format&fit=crop',
+    'paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1400&auto=format&fit=crop',
+    'london': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1400&auto=format&fit=crop',
+  };
+  
+  if (map[key.toLowerCase()]) {
+    previewImg.src = map[key.toLowerCase()];
+  } else {
+    previewImg.src = 'https://loremflickr.com/1200/800/' + encodeURIComponent(key) + ',city,landscape/all';
+  }
+}
+
+{% if show_modal %}
+document.addEventListener('DOMContentLoaded', function() {
+  new bootstrap.Modal(document.getElementById('createTripModal')).show();
+});
+{% endif %}
+
+function confirmDelete(tripId, tripName) {
+  document.getElementById('delTripName').textContent = tripName;
+  document.getElementById('delForm').action = `/explore/${tripId}/delete`;
+  new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+let _pendingPlace = {};
+function openTripPicker(datasetOrName, desc, bestTime, duration, category) {
+  const placeData = typeof datasetOrName === 'object' && datasetOrName !== null && datasetOrName.name ? datasetOrName : {
+    name: datasetOrName,
+    desc,
+    bestTime,
+    duration,
+    category,
+  };
+
+  _pendingPlace = {
+    name: placeData.name,
+    desc: placeData.desc,
+    bestTime: placeData.bestTime,
+    duration: placeData.duration,
+    category: placeData.category,
+    address: placeData.address,
+    openingStatus: placeData.openingStatus,
+    rating: placeData.rating,
+    distance: placeData.distance,
+    imageUrl: placeData.imageUrl,
+  };
+  document.getElementById('pickerPlaceName').textContent = placeData.name;
+  document.getElementById('tripPickerSelect').value = '';
+  new bootstrap.Modal(document.getElementById('tripPickerModal')).show();
+}
+
+function confirmAddToItinerary() {
+  const select = document.getElementById('tripPickerSelect');
+  const tripId = select.value;
+  if (!tripId) { showToast('Please select a trip.', 'warning'); return; }
+
+  const fd = new FormData();
+  fd.append('trip_id', tripId);
+  fd.append('place_name', _pendingPlace.name);
+  fd.append('place_desc', _pendingPlace.desc);
+  fd.append('best_time', _pendingPlace.bestTime);
+  fd.append('duration', _pendingPlace.duration);
+  fd.append('category', _pendingPlace.category);
+
+  fetch('/explore/add', { method:'POST', body:fd })
+    .then(r => r.json())
+    .then(data => {
+      bootstrap.Modal.getInstance(document.getElementById('tripPickerModal')).hide();
+      showToast(data.message, data.success ? 'success' : 'danger');
+    })
+    .catch(() => showToast('Network error.', 'danger'));
+}
+
+function toggleFavorite(button) {
+  const placeId = button.dataset.placeId;
+  const fd = new FormData();
+  fd.append('place_id', placeId);
+
+  fetch('/explore/favorite', { method:'POST', body:fd })
+    .then(r => r.json())
+    .then(data => {
+      button.classList.toggle('text-danger', data.favorited);
+      button.classList.toggle('text-muted', !data.favorited);
+      showToast(data.message, data.success ? 'success' : 'danger');
+    })
+    .catch(() => showToast('Unable to update favorites.', 'danger')); 
+}
+
+function showToast(msg, type='success') {
+  const colors = { success:'#059669', warning:'#d97706', danger:'#ef4444' };
+  const el = document.createElement('div');
+  el.className = 'toast show align-items-center border-0 mb-2';
+  el.style.cssText = `border-radius:14px;min-width:250px;background:#fff;border-left:4px solid ${colors[type]}!important;box-shadow:0 8px 30px rgba(0,0,0,.13)`;
+  el.innerHTML = `<div class="d-flex"><div class="toast-body fw-bold text-dark">${msg}</div><button type="button" class="btn-close me-2 m-auto" onclick="this.closest('.toast').remove()"></button></div>`;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+function filterTripStatus(status, button) {
+  document.querySelectorAll('[onclick^="filterTripStatus("]')?.forEach(btn => btn.classList.remove('active'));
+  button.classList.add('active');
+  document.querySelectorAll('.trip-horizontal-card').forEach(card => {
+    const cardStatus = card.dataset.tripStatus;
+    card.style.display = (status === 'All' || cardStatus === status) ? '' : 'none';
+  });
+}
+
+function createModalMemberCard(member, index) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'col-12';
+  wrapper.innerHTML = `
+    <div class="card border-0 shadow-sm rounded-4 p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <p class="mb-1 fw-semibold">Member ${index + 1}</p>
+          <span class="text-muted small">Group traveler</span>
+        </div>
+        <button type="button" class="btn btn-sm btn-light text-danger remove-modal-member"><i class="fa-solid fa-trash"></i></button>
+      </div>
+      <div class="row g-2">
+        <div class="col-6">
+          <input type="text" class="form-control form-control-sm" name="member_name_${index}" value="${member.name}" placeholder="Name">
+        </div>
+        <div class="col-6">
+          <input type="email" class="form-control form-control-sm" name="member_email_${index}" value="${member.email}" placeholder="Email">
+        </div>
+      </div>
+    </div>
+  `;
+  wrapper.querySelector('.remove-modal-member').addEventListener('click', () => {
+    wrapper.remove();
+  });
+  return wrapper;
+}
+
+function updateModalMemberSection() {
+  const modalParticipantsSection = document.getElementById('modalParticipantsSection');
+  const groupTypeEl = document.getElementById('modalTripTypeGroup');
+  if (!modalParticipantsSection || !groupTypeEl) return;
+  modalParticipantsSection.classList.toggle('d-none', !groupTypeEl.checked);
+}
+
+(function() {
+  const modalAddMemberBtn = document.getElementById('modalAddMemberBtn');
+  const modalMembersContainer = document.getElementById('modalMembersContainer');
+  const modalTripTypeSolo = document.getElementById('modalTripTypeSolo');
+  const modalTripTypeGroup = document.getElementById('modalTripTypeGroup');
+
+  if (modalTripTypeSolo && modalTripTypeGroup) {
+    modalTripTypeSolo.addEventListener('change', updateModalMemberSection);
+    modalTripTypeGroup.addEventListener('change', updateModalMemberSection);
+  }
+
+  if (modalAddMemberBtn && modalMembersContainer) {
+    modalAddMemberBtn.addEventListener('click', () => {
+      const index = modalMembersContainer.children.length;
+      const memberCard = createModalMemberCard({ name: `Member ${index + 1}`, email: '' }, index);
+      modalMembersContainer.appendChild(memberCard);
+    });
+  }
+  const defaultMembers = [
+    { name: 'You', email: 'you@example.com' },
+    { name: 'Rahul', email: 'rahul@example.com' },
+    { name: 'Priya', email: 'priya@example.com' },
+    { name: 'Aman', email: 'aman@example.com' },
+  ];
+
+  const membersContainer = document.getElementById('membersContainer');
+  const addMemberBtn = document.getElementById('addMemberBtn');
+  const paidBySelect = document.getElementById('paidBySelect');
+  const splitBetweenGroup = document.getElementById('splitBetweenGroup');
+  const previewAvatars = document.getElementById('previewAvatars');
+  const previewMemberCount = document.getElementById('previewMemberCount');
+  const previewTripName = document.getElementById('previewTripName');
+  const previewTripMeta = document.getElementById('previewTripMeta');
+  const tripNameInput = document.getElementById('tripName');
+  const tripDestinationInput = document.getElementById('tripDestination');
+  const tripStartInput = document.getElementById('tripStart');
+  const tripEndInput = document.getElementById('tripEnd');
+  const tripTypeGroup = document.getElementById('tripTypeGroup');
+  const tripTypeSolo = document.getElementById('tripTypeSolo');
+  const participantsSection = document.getElementById('participantsSection');
+
+  function createMemberCard(member, index) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'col-md-6';
+    wrapper.innerHTML = `
+      <div class="member-card p-3">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <p class="mb-1 fw-semibold">Member ${index + 1}</p>
+            <span class="badge badge-pill bg-success bg-opacity-15 text-success">Traveler</span>
+          </div>
+          <button type="button" class="btn btn-icon btn-sm btn-light text-danger remove-member-btn" title="Remove"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <label class="form-label small mb-1">Name</label>
+        <input type="text" class="form-control form-control-sm member-name" value="${member.name}">
+        <label class="form-label small mt-3 mb-1">Email</label>
+        <input type="email" class="form-control form-control-sm member-email" value="${member.email}">
+      </div>
+    `;
+    membersContainer.appendChild(wrapper);
+
+    wrapper.querySelector('.member-name').addEventListener('input', syncPreview);
+    wrapper.querySelector('.member-email').addEventListener('input', syncPreview);
+    wrapper.querySelector('.remove-member-btn').addEventListener('click', () => {
+      wrapper.remove();
+      syncPreview();
+    });
+  }
+
+  function getMembers() {
+    return Array.from(membersContainer.querySelectorAll('.member-card')).map((card) => ({
+      name: card.querySelector('.member-name').value || 'Member',
+      email: card.querySelector('.member-email').value || '',
+    }));
+  }
+
+  function renderMembers(members = defaultMembers) {
+    membersContainer.innerHTML = '';
+    members.forEach((member, index) => createMemberCard(member, index));
+    syncPreview();
+  }
+
+  function syncPreview() {
+    const members = getMembers();
+    paidBySelect.innerHTML = '';
+    splitBetweenGroup.innerHTML = '';
+    previewAvatars.innerHTML = '';
+
+    members.forEach((member, idx) => {
+      const option = document.createElement('option');
+      option.value = member.name;
+      option.textContent = member.name;
+      paidBySelect.appendChild(option);
+
+      const label = document.createElement('label');
+      label.className = 'form-check form-check-inline mb-2';
+      label.innerHTML = `<input class="form-check-input" type="checkbox" value="${member.name}" checked> <span class="form-check-label">${member.name}</span>`;
+      splitBetweenGroup.appendChild(label);
+
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.textContent = member.name.charAt(0).toUpperCase() || '?';
+      previewAvatars.appendChild(avatar);
+    });
+
+    previewMemberCount.textContent = members.length;
+    previewTripName.textContent = tripNameInput.value || 'Untitled Trip';
+    previewTripMeta.textContent = `${tripStartInput.value || 'Start'} — ${tripEndInput.value || 'End'} · ${tripDestinationInput.value || 'Destination'} · ${tripTypeGroup.checked ? 'Group' : 'Solo'}`;
+  }
+
+  window.showCreateForm = function(destination) {
+    const tripBuilderSection = document.getElementById('tripBuilderSection');
+    const previewSection = document.getElementById('previewSection');
+    const destinationInput = document.getElementById('tripDestination');
+    const nameInput = document.getElementById('tripName');
+
+    if (destinationInput) {
+      destinationInput.value = destination;
+    }
+    if (nameInput) {
+      const currentName = nameInput.value.trim();
+      nameInput.value = currentName && !currentName.toLowerCase().startsWith('trip to')
+        ? currentName
+        : `Trip to ${destination}`;
+    }
+
+    tripBuilderSection?.classList.remove('d-none');
+    previewSection?.classList.remove('d-none');
+    syncPreview();
+    tripBuilderSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  addMemberBtn.addEventListener('click', () => {
+    createMemberCard({ name: 'New Friend', email: 'friend@example.com' }, membersContainer.children.length);
+    syncPreview();
+  });
+
+  [tripNameInput, tripDestinationInput, tripStartInput, tripEndInput].forEach(el => el.addEventListener('input', syncPreview));
+  [tripTypeSolo, tripTypeGroup].forEach(el => el.addEventListener('change', () => {
+    participantsSection.style.display = tripTypeGroup.checked ? 'block' : 'none';
+    syncPreview();
+  }));
+
+  renderMembers();
+  participantsSection.style.display = tripTypeGroup.checked ? 'block' : 'none';
+})();
+
+const currentDest = "{{ dest }}";
+const favoritePlaces = {{ session.get('favorite_places', []) | tojson }};
+
+
+const showCreateModal = {{ 'true' if show_modal else 'false' }};
+document.addEventListener('DOMContentLoaded', () => {
+  if (showCreateModal) {
+    new bootstrap.Modal(document.getElementById('createTripModal')).show();
+  }
+});
+
+
+/* =========================================================
+   EXPLORE DESTINATION - 4-Tab (Attractions / Hotels / Shopping)
+   ========================================================= */
+(function() {
+  if (!currentDest) return;
+  var exploreTab = 'attractions';
+
+  function showExploreSkeletons() {
+    var grid = document.getElementById('exploreDestGrid');
+    if (!grid) return;
+    var html = '';
+    for (var i = 0; i < 6; i++) {
+      html += '<div class="col-md-6 col-xl-4">'
+        + '<div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden" style="min-height:370px;">'
+        + '<div class="skeleton-card" style="height:200px;width:100%;"></div>'
+        + '<div class="card-body p-3">'
+        + '<div class="skeleton-card mb-2" style="height:20px;width:65%;border-radius:4px;"></div>'
+        + '<div class="skeleton-card mb-2" style="height:14px;width:40%;border-radius:4px;"></div>'
+        + '<div class="skeleton-card mb-3" style="height:13px;width:75%;border-radius:4px;"></div>'
+        + '<div class="d-flex gap-2 mt-3">'
+        + '<div class="skeleton-card" style="height:32px;width:80px;border-radius:20px;"></div>'
+        + '<div class="skeleton-card" style="height:32px;width:130px;border-radius:20px;"></div>'
+        + '</div></div></div></div>';
+    }
+    grid.innerHTML = html;
+  }
+
+  function buildStars(rating) {
+    if (rating == null) return '<span class="text-muted small">No rating</span>';
+    var full = Math.floor(rating), half = (rating-full)>=0.5?1:0, empty = 5-full-half, s='';
+    for (var a=0;a<full;a++)  s+='<i class="fa-solid fa-star text-warning" style="font-size:.8rem;"></i>';
+    if (half)                  s+='<i class="fa-solid fa-star-half-stroke text-warning" style="font-size:.8rem;"></i>';
+    for (var b=0;b<empty;b++) s+='<i class="fa-regular fa-star text-warning" style="font-size:.8rem;"></i>';
+    return s+'<span class="ms-1 fw-bold" style="font-size:.85rem;">'+parseFloat(rating).toFixed(1)+'</span>';
+  }
+
+  var FALLBACKS = {
+    attractions:'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&auto=format&fit=crop',
+    hotels:'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=600&auto=format&fit=crop',
+    shopping:'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&auto=format&fit=crop'
+  };
+
+  function renderExplorePlaces(places) {
+    var grid = document.getElementById('exploreDestGrid');
+    if (!grid) return;
+    if (!places || !places.length) {
+      grid.innerHTML = '<div class="col-12 text-center py-5">'
+        + '<i class="fa-solid fa-magnifying-glass fa-3x text-muted mb-3"></i>'
+        + '<h5 class="fw-bold">No results found for this destination.</h5>'
+        + '<p class="text-muted">Try a different destination or switch tabs.</p></div>';
+      return;
+    }
+    var fallback = FALLBACKS[exploreTab]||FALLBACKS.attractions, html='';
+    places.forEach(function(p) {
+      var isFav = favoritePlaces.includes(p.place_id)||favoritePlaces.includes(String(p.place_id));
+      var favCls = isFav?'fa-solid fa-heart text-danger':'fa-regular fa-heart text-white';
+      var photo  = p.image_url || p.photo_url || fallback;
+      var stars  = buildStars(p.rating);
+      var revTxt = p.reviews?'<span class="text-muted" style="font-size:.78rem;">('+Number(p.reviews).toLocaleString()+' reviews)</span>':'';
+      var obadge = '';
+      if (p.open_now===true)  obadge='<span class="badge bg-success bg-opacity-15 text-success rounded-pill px-2" style="font-size:.7rem;"><i class="fa-solid fa-circle me-1" style="font-size:.4rem;vertical-align:middle;"></i>Open Now</span>';
+      if (p.open_now===false) obadge='<span class="badge bg-danger bg-opacity-15 text-danger rounded-pill px-2" style="font-size:.7rem;"><i class="fa-solid fa-circle me-1" style="font-size:.4rem;vertical-align:middle;"></i>Closed</span>';
+      var priceChip = '';
+      if (p.price) {
+        priceChip = '<span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2" style="font-size:.75rem;">'+(p.price||'')+'</span>';
+      }
+      var sn=((p.name||'').replace(/"/g,'&quot;')), sa=((p.address||'').replace(/"/g,'&quot;'));
+      var sm=((p.maps_url||'#').replace(/"/g,'&quot;')), sp=((p.place_id||'').replace(/"/g,'&quot;'));
+      var sph=photo.replace(/"/g,'&quot;'), ost=(p.open_now===true?'Open Now':p.open_now===false?'Closed':'');
+      html+='<div class="col-md-6 col-xl-4">'
+        +'<article class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden explore-dest-card" style="transition:transform .22s ease,box-shadow .22s ease;">'
+        +'<div class="position-relative" style="height:200px;overflow:hidden;">'
+        +'<img src="'+photo+'" loading="lazy" onerror="this.src=\''+fallback+'\'" class="w-100 h-100 object-fit-cover" style="transition:transform .35s ease;" alt="'+sn+'">'
+        +'<button type="button" class="btn btn-sm rounded-circle position-absolute d-flex align-items-center justify-content-center" style="top:10px;right:10px;width:36px;height:36px;background:rgba(0,0,0,.45);border:none;backdrop-filter:blur(4px);z-index:2;" data-place-id="'+sp+'" onclick="toggleExploreFav(this)" title="Save to favorites"><i class="'+favCls+'" style="font-size:.9rem;pointer-events:none;"></i></button>'
+        +(obadge?'<div class="position-absolute" style="bottom:10px;left:10px;">'+obadge+'</div>':'')
+        +'</div>'
+        +'<div class="card-body d-flex flex-column p-3">'
+        +'<h6 class="fw-bold mb-1" style="line-height:1.3;font-size:.97rem;">'+(p.name||'Unknown Place')+'</h6>'
+        +'<div class="d-flex align-items-center gap-2 mb-2 flex-wrap"><div class="d-flex align-items-center gap-1">'+stars+'</div>'+revTxt+'</div>'
+        +(priceChip?'<div class="mb-2">'+priceChip+'</div>':'')
+        +(p.address?'<p class="text-muted small mb-3 flex-grow-1" style="line-height:1.4;font-size:.82rem;"><i class="fa-solid fa-location-dot me-1 text-primary"></i>'+p.address+'</p>':'<div class="flex-grow-1"></div>')
+        +'<div class="d-flex gap-2 flex-wrap mt-auto pt-2">'
+        +'<button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold" data-place-id="'+sp+'" data-name="'+sn+'" data-desc="'+sa+'" data-best-time="" data-duration="" data-category="'+exploreTab+'" data-address="'+sa+'" data-opening-status="'+ost+'" data-maps-url="'+sm+'" data-rating="'+(p.rating||'')+'" data-distance="" data-image-url="'+sph+'" onclick="openTripPicker(this.dataset)"><i class="fa-solid fa-plus me-1"></i>Add to Itinerary</button>'
+        +'</div></div></article></div>';
+    });
+    grid.innerHTML = html;
+    grid.querySelectorAll('.explore-dest-card').forEach(function(c) {
+      c.addEventListener('mouseenter',function(){c.style.transform='translateY(-4px)';c.style.boxShadow='0 12px 32px rgba(0,0,0,.13)';var im=c.querySelector('img');if(im)im.style.transform='scale(1.05)';});
+      c.addEventListener('mouseleave',function(){c.style.transform='';c.style.boxShadow='';var im=c.querySelector('img');if(im)im.style.transform='';});
+    });
+  }
+
+  function loadExploreDest() {
+    showExploreSkeletons();
+    fetch('/explore/api/explore-destination?dest='+encodeURIComponent(currentDest)+'&tab='+encodeURIComponent(exploreTab))
+      .then(function(r){return r.json();})
+      .then(function(data){renderExplorePlaces(data);})
+      .catch(function(){
+        var g=document.getElementById('exploreDestGrid');
+        if(g)g.innerHTML='<div class="col-12 text-center py-5"><i class="fa-solid fa-triangle-exclamation fa-3x text-warning mb-3"></i><h5 class="fw-bold">Failed to load places.</h5><p class="text-muted">Check your connection and try again.</p></div>';
+      });
+  }
+
+  document.querySelectorAll('.explore-tab-btn').forEach(function(btn) {
+    btn.addEventListener('click',function() {
+      document.querySelectorAll('.explore-tab-btn').forEach(function(b){
+        b.style.background='transparent';b.style.color='#6b7280';b.style.border='1.5px solid #e5e7eb';b.classList.remove('active');
+      });
+      btn.style.background='linear-gradient(135deg,#6366f1,#8b5cf6)';
+      btn.style.color='#fff';btn.style.border='none';btn.classList.add('active');
+      exploreTab=btn.dataset.tab;
+      loadExploreDest();
+    });
+  });
+
+  window.toggleExploreFav = function(btn) {
+    var pid=btn.dataset.placeId; if(!pid) return;
+    var icon=btn.querySelector('i'), fd=new FormData(); fd.append('place_id',pid);
+    fetch('/explore/favorite',{method:'POST',body:fd})
+      .then(function(r){return r.json();})
+      .then(function(d){icon.className=d.favorited?'fa-solid fa-heart text-danger':'fa-regular fa-heart text-white';});
+  };
+
+  loadExploreDest();
+})();
+
+</script>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid py-4 px-4">
+
+  <!-- Back Button -->
+  <div class="mb-4">
+    <a href="{{ url_for('explorer.hub') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+      <i class="fa-solid fa-arrow-left me-1"></i> Back to Trips
+    </a>
+  </div>
+
+  <!-- Hero Banner -->
+  <div class="rounded-4 overflow-hidden position-relative mb-4 shadow" style="height: 260px;">
+    <img
+      src="{{ trip.cover_image or 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=1400&auto=format&fit=crop' }}"
+      onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=1400&auto=format&fit=crop'"
+      class="w-100 h-100 object-fit-cover" alt="{{ trip.destination }}">
+    <div class="position-absolute inset-0 w-100 h-100" style="background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.65) 100%);"></div>
+    <div class="position-absolute bottom-0 start-0 p-4 text-white">
+      <span class="badge {{ trip.status_badge_class }} fs-6 mb-2">{{ trip.current_status }}</span>
+      <h2 class="fw-bold mb-1" style="font-family:'Montserrat',sans-serif;">{{ trip.name }}</h2>
+      <p class="mb-0 opacity-75"><i class="fa-solid fa-location-dot me-1"></i>{{ trip.destination }}</p>
+    </div>
+    <div class="position-absolute top-0 end-0 p-3 d-flex gap-2">
+      <a href="{{ url_for('trips.edit_trip', trip_id=trip.id) }}" class="btn btn-sm btn-light rounded-circle shadow" title="Edit Trip">
+        <i class="fa-solid fa-pen"></i>
+      </a>
+      <a href="{{ url_for('itinerary.itinerary', trip_id=trip.id) }}" class="btn btn-sm btn-primary rounded-pill px-3 shadow" title="View Itinerary">
+        <i class="fa-solid fa-calendar-days me-1"></i>Itinerary
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Left Column: Info Cards -->
+    <div class="col-lg-8">
+
+      <!-- Trip Overview -->
+      <div class="glass-card p-4 rounded-4 mb-4">
+        <p class="eyebrow mb-2">Trip Overview</p>
+        <div class="row g-3">
+          <div class="col-sm-6 col-md-3">
+            <div class="p-3 rounded-3 text-center" style="background: rgba(99,102,241,0.08);">
+              <i class="fa-regular fa-calendar-check fa-lg text-primary mb-2 d-block"></i>
+              <div class="small text-muted fw-bold">Start Date</div>
+              <div class="fw-bold">{{ trip.start_date.strftime('%d %b %Y') }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <div class="p-3 rounded-3 text-center" style="background: rgba(99,102,241,0.08);">
+              <i class="fa-regular fa-calendar-xmark fa-lg text-danger mb-2 d-block"></i>
+              <div class="small text-muted fw-bold">End Date</div>
+              <div class="fw-bold">{{ trip.end_date.strftime('%d %b %Y') }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <div class="p-3 rounded-3 text-center" style="background: rgba(34,197,94,0.08);">
+              <i class="fa-solid fa-coins fa-lg text-success mb-2 d-block"></i>
+              <div class="small text-muted fw-bold">Budget</div>
+              <div class="fw-bold">&#8377;{{ "%.0f"|format(trip.budget) }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <div class="p-3 rounded-3 text-center" style="background: rgba(249,115,22,0.08);">
+              {% if trip.trip_type == 'solo' %}
+              <i class="fa-solid fa-user fa-lg text-warning mb-2 d-block"></i>
+              <div class="small text-muted fw-bold">Type</div>
+              <div class="fw-bold">Solo</div>
+              {% else %}
+              <i class="fa-solid fa-users fa-lg text-warning mb-2 d-block"></i>
+              <div class="small text-muted fw-bold">Type</div>
+              <div class="fw-bold">Group</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        {% if trip.description %}
+        <hr class="my-3 opacity-25">
+        <p class="eyebrow mb-1">Description</p>
+        <p class="text-muted mb-0">{{ trip.description }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Budget Breakdown -->
+      {% set total_spent = trip.expenses|sum(attribute='amount') %}
+      {% set remaining = trip.budget - total_spent %}
+      <div class="glass-card p-4 rounded-4 mb-4">
+        <p class="eyebrow mb-3">Budget Breakdown</p>
+        <div class="d-flex justify-content-between mb-1">
+          <span class="small text-muted">Spent</span>
+          <span class="small fw-bold text-danger">&#8377;{{ "%.2f"|format(total_spent) }}</span>
+        </div>
+        <div class="progress mb-3" style="height: 8px; border-radius: 999px;">
+          {% if trip.budget > 0 %}
+            {% set pct = (total_spent / trip.budget * 100)|round %}
+            {% if pct > 100 %}{% set pct = 100 %}{% endif %}
+          {% else %}
+            {% set pct = 0 %}
+          {% endif %}
+          <div class="progress-bar {% if pct > 80 %}bg-danger{% elif pct > 50 %}bg-warning{% else %}bg-success{% endif %}"
+               role="progressbar" style="width: {{ pct }}%"></div>
+        </div>
+        <div class="row g-3">
+          <div class="col-4 text-center">
+            <div class="small text-muted">Total Budget</div>
+            <div class="fw-bold text-primary">&#8377;{{ "%.0f"|format(trip.budget) }}</div>
+          </div>
+          <div class="col-4 text-center">
+            <div class="small text-muted">Spent</div>
+            <div class="fw-bold text-danger">&#8377;{{ "%.0f"|format(total_spent) }}</div>
+          </div>
+          <div class="col-4 text-center">
+            <div class="small text-muted">Remaining</div>
+            <div class="fw-bold {% if remaining < 0 %}text-danger{% else %}text-success{% endif %}">
+              &#8377;{{ "%.0f"|format(remaining) }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Expenses -->
+      <div class="glass-card p-4 rounded-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <p class="eyebrow mb-0">Recent Expenses</p>
+          <a href="{{ url_for('expenses.expenses') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">View All</a>
+        </div>
+        {% if trip.expenses %}
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr>
+                <th class="small text-muted fw-bold border-0">Title</th>
+                <th class="small text-muted fw-bold border-0">Category</th>
+                <th class="small text-muted fw-bold border-0">Amount</th>
+                <th class="small text-muted fw-bold border-0">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for expense in trip.expenses[:5] %}
+              <tr>
+                <td class="fw-semibold">{{ expense.title }}</td>
+                <td><span class="badge bg-secondary bg-opacity-10 text-secondary">{{ expense.category }}</span></td>
+                <td class="text-danger fw-bold">&#8377;{{ "%.2f"|format(expense.amount) }}</td>
+                <td class="text-muted small">{{ expense.date }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted small mb-0">No expenses recorded yet.</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+
+      <!-- Members -->
+      {% if trip.members %}
+      <div class="glass-card p-4 rounded-4 mb-4">
+        <p class="eyebrow mb-3">Members ({{ trip.members|length }})</p>
+        <div class="d-flex flex-column gap-2">
+          {% for member in trip.members %}
+          <div class="d-flex align-items-center gap-3 p-2 rounded-3" style="background: rgba(99,102,241,0.05);">
+            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-primary"
+                 style="width:38px; height:38px; background: rgba(99,102,241,0.12); font-size:0.9rem; flex-shrink:0;">
+              {{ (member.display_name or member.user.full_name or member.user.username)[0]|upper }}
+            </div>
+            <div class="flex-grow-1" style="min-width:0;">
+              <div class="fw-semibold text-truncate">{{ member.display_name or member.user.full_name or member.user.username }}</div>
+              <div class="small text-muted">{{ member.role }}</div>
+            </div>
+            <span class="badge bg-success bg-opacity-10 text-success small">{{ member.status }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Duration Summary -->
+      <div class="glass-card p-4 rounded-4">
+        <p class="eyebrow mb-3">Duration</p>
+        {% set duration = (trip.end_date - trip.start_date).days %}
+        <div class="text-center mb-3">
+          <div class="display-6 fw-bold text-primary">{{ duration }}</div>
+          <div class="text-muted small">{{ 'Day' if duration == 1 else 'Days' }}</div>
+        </div>
+        <hr class="opacity-25 my-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="small text-muted">Days Left</span>
+          <span class="fw-bold {% if trip.days_left == 0 %}text-muted{% else %}text-primary{% endif %}">
+            {% if trip.days_left == 0 %}
+              {% if trip.current_status == 'Ongoing' %}Ongoing{% else %}Completed{% endif %}
+            {% else %}
+              {{ trip.days_left }} days
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid px-4 py-4 mb-5">
+  
+  <!-- ── User Profile Header (Screen 7) ────────────────────────── -->
+  <div class="mb-5 text-center">
+    <div class="position-relative d-inline-block mb-3">
+      <img src="https://ui-avatars.com/api/?name={{ current_user.full_name or current_user.username }}&background=059669&color=fff&size=120" class="rounded-circle shadow" style="width:120px;height:120px;object-fit:cover" alt="Profile Image">
+    </div>
+    <h3 class="fw-bold mb-1">{{ current_user.full_name or current_user.username }}</h3>
+    <p class="text-muted mb-3">{{ current_user.email }}</p>
+    
+  </div>
+
+  <!-- ── Settings Section ──────────────────────────────────────── -->
+  <div class="row g-4 mb-5 justify-content-center">
+    <!-- Edit Profile -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-4">Edit Profile</h5>
+          <form method="post" action="{{ url_for('auth.profile') }}">
+            {{ profile_form.hidden_tag() }}
+            <div class="mb-3">
+              <label class="form-label text-muted small fw-bold">Full Name</label>
+              {{ profile_form.full_name(class_='form-control rounded-pill bg-light border-0 px-3', placeholder='Full Name') }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted small fw-bold">Email</label>
+              {{ profile_form.email(class_='form-control rounded-pill bg-light border-0 px-3', placeholder='Email') }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted small fw-bold">Username</label>
+              {{ profile_form.username(class_='form-control rounded-pill bg-light border-0 px-3', placeholder='Username') }}
+            </div>
+            <div class="mb-4">
+              <label class="form-label text-muted small fw-bold">Phone</label>
+              {{ profile_form.phone(class_='form-control rounded-pill bg-light border-0 px-3', placeholder='Phone') }}
+            </div>
+            <button class="btn btn-primary w-100 rounded-pill py-2">Save Profile</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Reports Summary (Screen 7) ───────────────────────────── -->
+  <div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h5 class="fw-bold mb-2">Report summary</h5>
+        <p class="text-muted small mb-0">Quick overview across all your trips.</p>
+      </div>
+      </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+          <p class="text-muted small mb-2">Total Trips</p>
+          <h5 class="fw-bold mb-1">{{ total_trips }}</h5>
+          <p class="text-muted mb-0">Total budget: ₹{{ "%.2f"|format(total_budget) }}</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+          <p class="text-muted small mb-2">Total expense</p>
+          <h5 class="fw-bold mb-1">₹{{ "%.2f"|format(total_expenses) }}</h5>
+          <p class="text-muted mb-0">Across all trips</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+          <p class="text-muted small mb-2">Remaining budget</p>
+          <h5 class="fw-bold mb-1">₹{{ "%.2f"|format(remaining_budget) }}</h5>
+          <p class="text-muted mb-0">Across all trips</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Preplanned Trips (Screen 7) ───────────────────────────── -->
+  <div class="mb-5">
+    <h5 class="fw-bold mb-3">Preplanned trips</h5>
+    <div class="row g-3">
+      {% set preplanned = [
+        {'name':'Weekend in Goa', 'img':'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600&auto=format&fit=crop', 'days':'3 Days', 'budget':'₹15,000'},
+        {'name':'Kerala Backwaters', 'img':'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600&auto=format&fit=crop', 'days':'5 Days', 'budget':'₹25,000'},
+        {'name':'Manali Escape', 'img':'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&auto=format&fit=crop', 'days':'4 Days', 'budget':'₹18,000'},
+        {'name':'Udaipur Palace', 'img':'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=600&auto=format&fit=crop', 'days':'4 Days', 'budget':'₹20,000'}
+      ] %}
+      {% for pt in preplanned %}
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+          <div class="position-relative" style="height:140px">
+            <img src="{{ pt.img }}" class="w-100 h-100 object-fit-cover" alt="{{ pt.name }}">
+            <div class="position-absolute inset-0 bg-dark bg-opacity-25"></div>
+            <h5 class="position-absolute bottom-0 start-0 m-3 text-white fw-bold text-shadow">{{ pt.name }}</h5>
+          </div>
+          <div class="card-body p-3 d-flex justify-content-between align-items-center">
+            <div>
+              <span class="text-muted small fw-bold me-3"><i class="fa-regular fa-clock me-1"></i>{{ pt.days }}</span>
+              <span class="text-primary small fw-bold"><i class="fa-solid fa-coins me-1"></i>{{ pt.budget }}</span>
+            </div>
+            <button class="btn btn-sm btn-outline-primary rounded-pill px-3">View</button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+
+
+</div>
+
+<style>
+.trip-horizontal-card {
+  min-height: 110px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.trip-horizontal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1) !important;
+}
+.text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+.inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+</style>
+{% endblock %}

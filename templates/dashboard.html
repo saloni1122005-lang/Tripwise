@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="hero-card glass-card p-4 overflow-hidden position-relative">
+        <img src="https://cdn.wallpapersafari.com/85/81/ZPcDax.jpg" alt="Dashboard Banner"
+          class="w-100 object-fit-cover rounded mb-4" style="height: 250px; opacity: 0.9;">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 position-relative z-1">
+          <div>
+            <p class="eyebrow">TripWise Dashboard</p>
+            <h1>Welcome back, {{ current_user.full_name or current_user.username }}.</h1>
+            <p class="text-muted mb-0">Run your group travel plan from one polished workspace.</p>
+          </div>
+          <a href="{{ url_for('explorer.hub') }}" class="btn btn-primary shadow-sm">Create new trip</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-8">
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="stat-card glass-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+              <p class="eyebrow">Active Trips</p><i class="fa-solid fa-map-location-dot"></i>
+            </div>
+            <h3>{{ trips|length }}</h3>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="stat-card glass-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+              <p class="eyebrow">Upcoming Trips</p><i class="fa-solid fa-suitcase-rolling"></i>
+            </div>
+            <h3>{{ trips|length }}</h3>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="stat-card glass-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+              <p class="eyebrow">Total Budget</p><i class="fa-solid fa-coins"></i>
+            </div>
+            <h3>₹{{ "%.2f"|format(total_budget) }}</h3>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="stat-card glass-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+              <p class="eyebrow">Remaining Budget</p><i class="fa-solid fa-chart-line"></i>
+            </div>
+            <h3>₹{{ "%.2f"|format(remaining_budget) }}</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="glass-card p-4">
+        <p class="eyebrow">Weather Card</p>
+        <h3><i class="fa-solid fa-cloud-sun"></i> Pleasant</h3>
+        <p class="text-muted">Sunny skies and ideal travel conditions for your next adventure.</p>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="glass-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4>My Trips</h4>
+          <a href="{{ url_for('explorer.hub') }}" class="btn btn-sm btn-primary">Create new trip</a>
+        </div>
+        <div class="row g-3">
+          {% for trip in trips %}
+          <div class="col-md-6 col-lg-4">
+            <div class="glass-card p-3 h-100">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <h5 class="mb-1">{{ trip.name }}</h5>
+                  <p class="small text-muted mb-0">{{ trip.destination }} · {{ trip.start_date }} → {{ trip.end_date }}</p>
+                </div>
+                <form action="{{ url_for('trips.delete_trip', trip_id=trip.id) }}" method="post" onsubmit="return confirm('Delete this trip?');">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+              </div>
+              <p class="text-muted small mb-0">{{ trip.description }}</p>
+            </div>
+          </div>
+          {% else %}
+          <div class="col-12">
+            <p class="text-muted mb-0">No trips yet. Create one to get started.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="glass-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4>Recent Expenses</h4>
+          <a href="{{ url_for('expenses.expenses') }}">View all</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for expense in recent_expenses %}
+              <tr>
+                <td>{{ expense.title }}</td>
+                <td>{{ expense.category }}</td>
+                <td>₹{{ "%.2f"|format(expense.amount) }}</td>
+                <td>{{ expense.date }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

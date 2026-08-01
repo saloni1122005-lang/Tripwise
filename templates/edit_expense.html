@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <div class="glass-card p-4">
+    <h3>Edit Expense</h3>
+    <form method="post">
+      {{ form.hidden_tag() }}
+      <div class="row g-3">
+        <div class="col-md-4">{{ form.title(class_='form-control', placeholder='Title') }}</div>
+        <div class="col-md-4">{{ form.category(class_='form-select') }}</div>
+        <div class="col-md-4">{{ form.amount(class_='form-control', placeholder='Amount') }}</div>
+        <div class="col-md-4">{{ form.paid_by(class_='form-control', placeholder='Paid By') }}</div>
+        <div class="col-md-4">{{ form.split_between(class_='form-control', placeholder='Split between names') }}</div>
+        <div class="col-md-4">{{ form.date(class_='form-control') }}</div>
+        <div class="col-12">{{ form.notes(class_='form-control', rows=3, placeholder='Notes') }}</div>
+      </div>
+      <div class="mt-3"><button class="btn btn-primary">Save Changes</button></div>
+    </form>
+  </div>
+</div>
+{% endblock %}

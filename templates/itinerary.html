@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container-fluid py-4 itin-wrapper">
+
+  <!-- ── Top Bar ─────────────────────────────────────────── -->
+  <div class="itin-topbar">
+    <div>
+      <p class="eyebrow">Itinerary</p>
+      <h2 class="mb-0">Build Your Journey</h2>
+    </div>
+    <div class="itin-topbar-right">
+      <div class="itin-search-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" placeholder="Search activities…" id="itinSearch" class="itin-search-input">
+      </div>
+      <form method="get">
+        <select name="trip_id" class="form-select itin-select" onchange="this.form.submit()">
+          {% for item in trips %}
+          <option value="{{ item.id }}" {% if trip and trip.id == item.id %}selected{% endif %}>{{ item.name }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+  </div>
+
+  {% if trip %}
+
+  <!-- ── Trip Meta Strip ───────────────────────────────── -->
+  <div class="itin-meta-strip glass-card mb-4">
+    <div class="itin-meta-item"><i class="fa-solid fa-location-dot"></i><span>{{ trip.destination }}</span></div>
+    <div class="itin-meta-item"><i class="fa-regular fa-calendar"></i><span>{{ trip.start_date.strftime('%d %b') }} → {{ trip.end_date.strftime('%d %b %Y') }}</span></div>
+    <div class="itin-meta-item"><i class="fa-solid fa-coins"></i><span>₹{{ "%.0f"|format(trip.budget) }} Budget</span></div>
+    <div class="itin-meta-item"><i class="fa-solid fa-calendar-days"></i><span>{{ ((trip.end_date - trip.start_date).days + 1) }} Days</span></div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- LEFT: Day-by-Day Itinerary View (Screen 9) -->
+    <div class="col-lg-8">
+      <div class="glass-card p-4">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <h5 class="mb-0">
+            <i class="fa-solid fa-route me-2" style="color:var(--primary)"></i>
+            Itinerary for <strong>{{ trip.name }}</strong>
+          </h5>
+          <span class="itin-badge">{{ activities|length }} activities</span>
+        </div>
+
+        <!-- Column headers -->
+        <div class="itin-col-header">
+          <div class="itin-col-label"><i class="fa-solid fa-person-running me-2"></i>Physical Activity</div>
+          <div class="itin-col-label itin-col-label-exp"><i class="fa-solid fa-coins me-2"></i>Expense</div>
+        </div>
+
+        {% if activities %}
+          {% for day, day_acts in activities|groupby('day') %}
+          <div class="itin-day-block">
+            <div class="itin-day-tag"><i class="fa-solid fa-sun me-1"></i> Day {{ day }}</div>
+            {% for act in day_acts %}
+            <div class="itin-row activity-row" data-title="{{ act.title|lower }}">
+              <div class="itin-act-cell">
+                <div class="itin-act-time">{{ act.time }}</div>
+                <div class="itin-act-body">
+                  <div class="itin-act-title">{{ act.title }}</div>
+                  {% if act.description %}<div class="itin-act-desc">{{ act.description }}</div>{% endif %}
+                </div>
+                <div class="itin-act-actions">
+                  <a href="{{ url_for('itinerary.edit_activity', activity_id=act.id) }}" class="itin-act-btn" title="Edit"><i class="fa-solid fa-pen"></i></a>
+                  <form action="{{ url_for('itinerary.delete_activity', activity_id=act.id) }}" method="post" class="d-inline">
+                    <button type="submit" class="itin-act-btn itin-act-btn-danger" onclick="return confirm('Remove activity?')" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                  </form>
+                </div>
+              </div>
+              <div class="itin-exp-cell">
+                <div class="itin-exp-placeholder"><i class="fa-solid fa-circle-dollar-sign"></i><span>—</span></div>
+              </div>
+            </div>
+            {% if not loop.last %}
+            <div class="itin-connector-row"><div class="itin-connector-line"></div></div>
+            {% endif %}
+            {% endfor %}
+          </div>
+          {% endfor %}
+        {% else %}
+        <div class="text-center py-5">
+          <i class="fa-solid fa-calendar-xmark fa-3x mb-3" style="color:var(--primary);opacity:.2"></i>
+          <h6>No activities planned yet</h6>
+          <p class="text-muted small">Add your first activity using the panel on the right.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- RIGHT: Add Section Panel (Screen 5) -->
+    <div class="col-lg-4">
+      <div class="glass-card p-4 mb-4 itin-add-card">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <div class="itin-section-icon"><i class="fa-solid fa-plus"></i></div>
+          <div>
+            <h5 class="mb-0">Add Section</h5>
+            <p class="text-muted small mb-0">Add a new activity to your itinerary</p>
+          </div>
+        </div>
+        <form method="post" id="addActivityForm">
+          {{ form.hidden_tag() }}
+          <input type="hidden" name="trip_id" value="{{ trip.id if trip else '' }}">
+          <div class="itin-section-card mb-3">
+            <div class="itin-section-number">Section Details</div>
+            <div class="mb-2">
+              <label class="itin-field-label">Activity Title *</label>
+              <input type="text" name="title" class="form-control itin-input" placeholder="e.g. Morning Hike, Hotel Check-in" required>
+            </div>
+            <div class="mb-2">
+              <label class="itin-field-label">Trip Details</label>
+              <textarea name="description" class="form-control itin-input" rows="2" placeholder="Notes about this activity…"></textarea>
+            </div>
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="itin-field-label">Date Range (Day #) *</label>
+                <input type="number" name="day" class="form-control itin-input" placeholder="1" min="1" required>
+              </div>
+              <div class="col-6">
+                <label class="itin-field-label">Time</label>
+                <input type="text" name="time" class="form-control itin-input" placeholder="e.g. 10:00 AM" required>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 py-2">
+            <i class="fa-solid fa-plus me-2"></i>Add another Section
+          </button>
+        </form>
+      </div>
+
+      <div class="glass-card p-4 text-center">
+        <div class="mb-2" style="font-size:1.8rem">✨</div>
+        <h6 class="fw-bold mb-1">Smart Itinerary</h6>
+        <p class="text-muted small mb-3">Auto-generate a day-by-day plan based on your trip details.</p>
+        <form method="POST" action="{{ url_for('itinerary.suggest_itinerary') }}" onsubmit="return confirm('Generate a smart itinerary for this trip?')">
+          <input type="hidden" name="trip_id" value="{{ trip.id }}">
+          <button type="submit" class="btn btn-outline-primary w-100">
+            <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Generate Smart Itinerary
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="glass-card p-5 text-center">
+    <i class="fa-solid fa-calendar-xmark fa-3x mb-3" style="color:var(--primary);opacity:.2"></i>
+    <h5>No trip selected</h5>
+    <p class="text-muted">Select a trip from the dropdown above to start planning.</p>
+  </div>
+  {% endif %}
+
+</div>
+
+<style>
+.itin-wrapper { max-width: 1400px; }
+.itin-topbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:24px; }
+.itin-topbar-right { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.itin-search-wrap { display:flex; align-items:center; gap:8px; background:#fff; border:1.5px solid rgba(0,0,0,.09); border-radius:30px; padding:9px 16px; min-width:220px; }
+.itin-search-wrap i { color:var(--muted); font-size:.85rem; }
+.itin-search-input { border:none; outline:none; background:transparent; font-size:.9rem; width:100%; }
+.itin-select { border-radius:12px !important; border:1.5px solid rgba(0,0,0,.09) !important; padding:9px 14px !important; }
+.itin-meta-strip { display:flex; flex-wrap:wrap; gap:0; border-radius:16px; overflow:hidden; padding:0; }
+.itin-meta-item { display:flex; align-items:center; gap:8px; padding:14px 20px; font-size:.88rem; font-weight:600; border-right:1px solid rgba(0,0,0,.06); flex:1; min-width:150px; }
+.itin-meta-item:last-child { border-right:none; }
+.itin-meta-item i { color:var(--primary); }
+.itin-col-header { display:grid; grid-template-columns:1fr 120px; gap:12px; margin-bottom:12px; }
+.itin-col-label { font-size:.73rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); padding:6px 12px; background:rgba(5,150,105,.06); border-radius:8px; }
+.itin-col-label-exp { text-align:center; }
+.itin-day-block { margin-bottom:24px; }
+.itin-day-tag { display:inline-flex; align-items:center; gap:6px; background:var(--primary); color:#fff; font-size:.78rem; font-weight:700; padding:5px 14px; border-radius:20px; margin-bottom:10px; }
+.itin-row { display:grid; grid-template-columns:1fr 120px; gap:12px; }
+.itin-connector-row { grid-column:1; padding-left:24px; height:16px; display:flex; }
+.itin-connector-line { width:2px; height:100%; background:var(--primary); opacity:.2; }
+.itin-act-cell { background:#fff; border:1.5px solid rgba(0,0,0,.07); border-radius:14px; padding:14px 16px; display:flex; align-items:flex-start; gap:12px; box-shadow:0 2px 8px rgba(0,0,0,.04); transition:box-shadow .2s; }
+.itin-act-cell:hover { box-shadow:0 6px 20px rgba(0,0,0,.08); }
+.itin-act-time { font-size:.73rem; font-weight:700; color:var(--primary); white-space:nowrap; min-width:58px; padding-top:2px; }
+.itin-act-body { flex:1; min-width:0; }
+.itin-act-title { font-weight:600; font-size:.9rem; margin-bottom:3px; }
+.itin-act-desc { font-size:.78rem; color:var(--muted); line-height:1.4; }
+.itin-act-actions { display:flex; flex-direction:column; gap:4px; }
+.itin-act-btn { width:26px; height:26px; border-radius:8px; background:transparent; border:1.5px solid rgba(0,0,0,.09); color:var(--muted); display:flex; align-items:center; justify-content:center; font-size:.68rem; cursor:pointer; transition:all .2s; text-decoration:none; }
+.itin-act-btn:hover { border-color:var(--primary); color:var(--primary); background:rgba(5,150,105,.06); }
+.itin-act-btn-danger:hover { border-color:#ef4444; color:#ef4444; background:rgba(239,68,68,.06); }
+.itin-exp-cell { background:#fff; border:1.5px dashed rgba(0,0,0,.1); border-radius:14px; display:flex; align-items:center; justify-content:center; min-height:60px; }
+.itin-exp-placeholder { display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--muted); font-size:.75rem; }
+.itin-exp-placeholder i { font-size:.9rem; opacity:.3; }
+.itin-badge { background:rgba(5,150,105,.1); color:var(--primary); font-size:.75rem; font-weight:700; padding:4px 12px; border-radius:20px; }
+.itin-add-card { border-left:4px solid var(--primary); }
+.itin-section-icon { width:36px; height:36px; border-radius:10px; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0; }
+.itin-section-card { background:rgba(5,150,105,.04); border:1.5px solid rgba(5,150,105,.12); border-radius:14px; padding:16px; }
+.itin-section-number { font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:var(--primary); margin-bottom:10px; }
+.itin-field-label { font-size:.73rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-bottom:5px; display:block; }
+.itin-input { border-radius:10px !important; border:1.5px solid rgba(0,0,0,.09) !important; font-size:.88rem !important; }
+.itin-input:focus { border-color:var(--primary) !important; box-shadow:0 0 0 3px rgba(5,150,105,.12) !important; }
+</style>
+
+<script>
+const searchInput = document.getElementById('itinSearch');
+if (searchInput) {
+  searchInput.addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.activity-row').forEach(row => {
+      row.style.display = (!q || (row.dataset.title || '').includes(q)) ? '' : 'none';
+    });
+  });
+}
+</script>
+
+{% endblock %}
+

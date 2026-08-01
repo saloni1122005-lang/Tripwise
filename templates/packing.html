@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid py-4 pack-wrapper">
+
+  <!-- ── Top Bar: Search + Controls ─────────────────────── -->
+  <div class="pack-topbar">
+    <div class="pack-search-wrap">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" placeholder="Search items…" id="packSearch" class="pack-search-input">
+    </div>
+    <div class="pack-topbar-controls">
+      <form method="get" id="tripSelectForm">
+        <select name="trip_id" class="pack-select" onchange="document.getElementById('tripSelectForm').submit()">
+          <option value="" disabled {% if not trip %}selected{% endif %}>Select a trip</option>
+          {% for item in trips %}
+          <option value="{{ item.id }}" {% if trip and trip.id == item.id %}selected{% endif %}>{{ item.name }}</option>
+          {% endfor %}
+        </select>
+      </form>
+      <select class="pack-select" id="groupBySelect">
+        <option value="category">Group by: Category</option>
+        <option value="priority">Group by: Priority</option>
+      </select>
+      <select class="pack-select" id="filterSelect">
+        <option value="all">Filter: All</option>
+        <option value="packed">Packed</option>
+        <option value="unpacked">Unpacked</option>
+      </select>
+      <select class="pack-select" id="sortSelect">
+        <option value="name">Sort by: Name</option>
+        <option value="priority">Sort by: Priority</option>
+      </select>
+    </div>
+  </div>
+
+  {% if trip %}
+  <div class="pack-trip-header glass-card mb-4">
+    <div class="pack-trip-info">
+      <div>
+        <p class="eyebrow mb-1">Packing Checklist</p>
+        <h4 class="mb-0">{{ trip.name }} · <span class="pack-dest">{{ trip.destination }}</span></h4>
+      </div>
+      <div class="pack-trip-meta">
+        <span><i class="fa-regular fa-calendar me-1"></i>{{ trip.start_date.strftime('%d %b') }} → {{ trip.end_date.strftime('%d %b %Y') }}</span>
+      </div>
+    </div>
+    <div class="pack-progress-row">
+      <div class="pack-progress-label">
+        <span>Progress: <strong>{{ packed_items }}/{{ total_items }}</strong> items packed</span>
+        <span class="pack-progress-pct">{{ progress }}%</span>
+      </div>
+      <div class="pack-progress-bar-bg">
+        <div class="pack-progress-bar-fill" style="width:{{ progress }}%"></div>
+      </div>
+    </div>
+  </div>
+
+  {% set high_priority_unpacked = items | selectattr('is_packed', 'equalto', false) | selectattr('priority', 'equalto', 'High') | list %}
+  {% if high_priority_unpacked|length > 0 and trip.days_left <= 3 %}
+  <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center mb-4 rounded-3" role="alert">
+    <i class="fa-solid fa-triangle-exclamation me-3 fa-lg"></i>
+    <div>Trip in <strong>{{ trip.days_left }} day(s)</strong> — {{ high_priority_unpacked|length }} high-priority item(s) still unpacked</div>
+    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="glass-card p-4" id="packingChecklist">
+        {% if total_items == 0 %}
+        <div class="text-center py-5">
+          <i class="fa-solid fa-box-open fa-3x mb-3" style="color:var(--primary);opacity:.2"></i>
+          <h5>No items yet</h5>
+          <p class="text-muted small">Add items or use Smart Suggestions.</p>
+        </div>
+        {% else %}
+          {% for cat in categories %}
+          {% if items_by_category[cat]|length > 0 %}
+          {% set cat_packed = items_by_category[cat]|selectattr('is_packed')|list|length %}
+          {% set cat_total = items_by_category[cat]|length %}
+          <div class="pack-cat-block" data-cat="{{ cat }}">
+            <div class="pack-cat-header" onclick="toggleCat(this)">
+              <div class="pack-cat-left">
+                <i class="fa-solid {{ {'Documents':'fa-passport','Clothing':'fa-shirt','Electronics':'fa-plug','Toiletries':'fa-soap','Medications':'fa-pills','Footwear':'fa-shoe-prints','Accessories':'fa-glasses','Snacks':'fa-apple-whole','Entertainment':'fa-headphones','Miscellaneous':'fa-box'}.get(cat, 'fa-list') }} pack-cat-icon"></i>
+                <span class="pack-cat-name">{{ cat }}</span>
+              </div>
+              <div class="pack-cat-right">
+                <div class="pack-cat-progress-mini"><div class="pack-cat-bar" style="width:{{ (cat_packed/cat_total*100)|round }}%"></div></div>
+                <span class="pack-cat-count">{{ cat_packed }}/{{ cat_total }}</span>
+                <i class="fa-solid fa-chevron-down pack-cat-chevron"></i>
+              </div>
+            </div>
+            <div class="pack-cat-items">
+              {% for item in items_by_category[cat] %}
+              <div class="pack-item-row {{ 'pack-item-packed' if item.is_packed else '' }}" data-name="{{ item.name|lower }}" data-packed="{{ 'packed' if item.is_packed else 'unpacked' }}">
+                <div class="pack-item-left">
+                  <input class="pack-checkbox toggle-packed" type="checkbox" data-id="{{ item.id }}" {% if item.is_packed %}checked{% endif %} id="item{{ item.id }}">
+                  <label for="item{{ item.id }}" class="pack-item-label {{ 'pack-item-done' if item.is_packed else '' }}">
+                    {{ item.name }}
+                    {% if item.quantity > 1 %}<span class="pack-qty">×{{ item.quantity }}</span>{% endif %}
+                    {% if item.is_essential %}<i class="fa-solid fa-star pack-essential"></i>{% endif %}
+                  </label>
+                </div>
+                <div class="pack-item-right">
+                  <span class="pack-priority-pill pack-priority-{{ item.priority|lower }}">{{ item.priority }}</span>
+                  <button type="button" class="pack-item-btn" data-bs-toggle="modal" data-bs-target="#editItemModal{{ item.id }}"><i class="fa-solid fa-pen"></i></button>
+                  <form action="{{ url_for('packing.delete_item', item_id=item.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Remove?')">
+                    <button type="submit" class="pack-item-btn pack-item-btn-danger"><i class="fa-solid fa-trash"></i></button>
+                  </form>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+          {% endfor %}
+        {% endif %}
+        <div class="pack-action-bar">
+          <button class="pack-action-btn pack-action-add" onclick="document.getElementById('addItemName').focus()"><i class="fa-solid fa-plus me-1"></i>Add item to checklist</button>
+          <form method="POST" action="{{ url_for('packing.suggest_items') }}" class="d-inline" onsubmit="return confirm('Reset and load smart suggestions?')">
+            <input type="hidden" name="trip_id" value="{{ trip.id }}">
+            <button type="submit" class="pack-action-btn pack-action-reset">Reset all</button>
+          </form>
+          <button class="pack-action-btn pack-action-share" onclick="window.print()"><i class="fa-solid fa-share-nodes me-1"></i>Share Checklist</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="glass-card p-4 mb-4 sticky-top" style="top:1.5rem">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <div class="pack-add-icon"><i class="fa-solid fa-plus"></i></div>
+          <div><h5 class="mb-0">Add Item</h5><p class="text-muted small mb-0">Quick-add to your list</p></div>
+        </div>
+        <form method="POST" action="{{ url_for('packing.add_item') }}">
+          <input type="hidden" name="trip_id" value="{{ trip.id }}">
+          <div class="mb-3"><label class="pack-field-label">Item Name *</label><input type="text" name="name" id="addItemName" class="form-control pack-input" required placeholder="e.g. Passport"></div>
+          <div class="mb-3"><label class="pack-field-label">Category</label><select name="category" class="form-select pack-input">{% for cat in categories %}<option value="{{ cat }}">{{ cat }}</option>{% endfor %}</select></div>
+          <div class="row g-2 mb-3">
+            <div class="col-6"><label class="pack-field-label">Qty</label><input type="number" name="quantity" class="form-control pack-input" value="1" min="1"></div>
+            <div class="col-6"><label class="pack-field-label">Priority</label><select name="priority" class="form-select pack-input"><option value="High">High</option><option value="Medium" selected>Medium</option><option value="Low">Low</option></select></div>
+          </div>
+          {% if members %}<div class="mb-3"><label class="pack-field-label">Assign To</label><select name="assigned_to" class="form-select pack-input"><option value="">Anyone</option>{% for m in members %}<option value="{{ m.id }}">{{ m.user.full_name or m.user.username }}</option>{% endfor %}</select></div>{% endif %}
+          <div class="mb-3 form-check"><input class="form-check-input" type="checkbox" name="is_essential" id="isEssential"><label class="form-check-label small" for="isEssential">Essential</label></div>
+          <button type="submit" class="btn btn-primary w-100 py-2"><i class="fa-solid fa-plus me-2"></i>Add Item</button>
+        </form>
+        <hr class="my-3">
+        <form method="POST" action="{{ url_for('packing.suggest_items') }}"><input type="hidden" name="trip_id" value="{{ trip.id }}"><button type="submit" class="btn btn-outline-primary w-100"><i class="fa-solid fa-wand-magic-sparkles me-2"></i>Smart Suggestions</button></form>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="glass-card p-5 text-center">
+    <i class="fa-solid fa-plane-slash fa-3x mb-3" style="color:var(--primary);opacity:.2"></i>
+    <h4>No Trip Selected</h4>
+    <p class="text-muted">Choose a trip from the dropdown above.</p>
+    <a href="{{ url_for('explorer.hub') }}" class="btn btn-primary mt-2">Create a Trip</a>
+  </div>
+  {% endif %}
+</div>
+
+{% if items %}{% for item in items %}
+<div class="modal fade" id="editItemModal{{ item.id }}" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:20px;border:none"><div class="modal-header border-0 pb-0"><h5 class="modal-title">Edit Item</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form method="POST" action="{{ url_for('packing.edit_item', item_id=item.id) }}"><div class="mb-3"><label class="pack-field-label">Item Name *</label><input type="text" name="name" class="form-control pack-input" required value="{{ item.name }}"></div><div class="mb-3"><label class="pack-field-label">Category</label><select name="category" class="form-select pack-input">{% for cat in categories %}<option value="{{ cat }}" {% if item.category==cat %}selected{% endif %}>{{ cat }}</option>{% endfor %}</select></div><div class="row g-2 mb-3"><div class="col-6"><label class="pack-field-label">Qty</label><input type="number" name="quantity" class="form-control pack-input" min="1" value="{{ item.quantity }}"></div><div class="col-6"><label class="pack-field-label">Priority</label><select name="priority" class="form-select pack-input"><option {% if item.priority=='High' %}selected{% endif %}>High</option><option {% if item.priority=='Medium' %}selected{% endif %}>Medium</option><option {% if item.priority=='Low' %}selected{% endif %}>Low</option></select></div></div><div class="mb-3 form-check"><input class="form-check-input" type="checkbox" name="is_essential" id="edit_ess{{ item.id }}" {% if item.is_essential %}checked{% endif %}><label class="form-check-label small" for="edit_ess{{ item.id }}">Essential</label></div><button type="submit" class="btn btn-primary w-100">Save</button></form></div></div></div></div>
+{% endfor %}{% endif %}
+
+<style>
+.pack-wrapper{max-width:1400px}.pack-topbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:24px}.pack-search-wrap{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid rgba(0,0,0,.09);border-radius:30px;padding:9px 16px;min-width:230px;flex:1}.pack-search-wrap i{color:var(--muted);font-size:.85rem}.pack-search-input{border:none;outline:none;background:transparent;font-size:.9rem;width:100%}.pack-topbar-controls{display:flex;gap:8px;flex-wrap:wrap}.pack-select{border-radius:12px!important;border:1.5px solid rgba(0,0,0,.09)!important;padding:9px 14px!important;font-size:.85rem;background:#fff;cursor:pointer}
+.pack-trip-header{padding:20px 24px}.pack-trip-info{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px}.pack-dest{color:var(--muted);font-weight:400;font-size:.9em}.pack-trip-meta{font-size:.85rem;color:var(--muted)}.pack-progress-label{display:flex;justify-content:space-between;margin-bottom:6px;font-size:.85rem}.pack-progress-pct{font-weight:700;color:var(--primary)}.pack-progress-bar-bg{background:rgba(5,150,105,.1);border-radius:30px;height:10px;overflow:hidden}.pack-progress-bar-fill{background:var(--primary);height:100%;border-radius:30px;transition:width .5s ease}
+.pack-cat-block{margin-bottom:8px}.pack-cat-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(5,150,105,.04);border:1.5px solid rgba(5,150,105,.12);border-radius:12px;cursor:pointer;transition:background .2s;user-select:none}.pack-cat-header:hover{background:rgba(5,150,105,.08)}.pack-cat-left{display:flex;align-items:center;gap:10px}.pack-cat-icon{color:var(--primary);font-size:.9rem}.pack-cat-name{font-weight:700;font-size:.9rem}.pack-cat-right{display:flex;align-items:center;gap:10px}.pack-cat-progress-mini{width:60px;height:5px;background:rgba(0,0,0,.08);border-radius:10px;overflow:hidden}.pack-cat-bar{height:100%;background:var(--primary);border-radius:10px}.pack-cat-count{font-size:.78rem;font-weight:700;color:var(--primary)}.pack-cat-chevron{color:var(--muted);font-size:.75rem;transition:transform .25s}.pack-cat-header.collapsed .pack-cat-chevron{transform:rotate(-90deg)}.pack-cat-items{padding:4px 0 8px 0}
+.pack-item-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid rgba(0,0,0,.04);transition:background .15s}.pack-item-row:hover{background:rgba(0,0,0,.02)}.pack-item-row:last-child{border-bottom:none}.pack-item-packed{opacity:.6}.pack-item-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}.pack-checkbox{width:17px;height:17px;accent-color:var(--primary);cursor:pointer;flex-shrink:0}.pack-item-label{font-size:.9rem;cursor:pointer;margin:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.pack-item-done{text-decoration:line-through;color:var(--muted)}.pack-qty{background:rgba(0,0,0,.07);border-radius:20px;font-size:.72rem;font-weight:700;padding:1px 7px}.pack-essential{color:#f59e0b;font-size:.7rem}.pack-item-right{display:flex;align-items:center;gap:8px;flex-shrink:0}.pack-priority-pill{font-size:.68rem;font-weight:700;padding:3px 8px;border-radius:20px}.pack-priority-high{background:rgba(239,68,68,.1);color:#ef4444}.pack-priority-medium{background:rgba(245,158,11,.1);color:#d97706}.pack-priority-low{background:rgba(107,114,128,.1);color:#6b7280}.pack-item-btn{width:26px;height:26px;border-radius:7px;border:1.5px solid rgba(0,0,0,.09);background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:.68rem;cursor:pointer;transition:all .2s}.pack-item-btn:hover{border-color:var(--primary);color:var(--primary);background:rgba(5,150,105,.06)}.pack-item-btn-danger:hover{border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,.06)}
+.pack-action-bar{display:flex;gap:10px;flex-wrap:wrap;padding-top:18px;border-top:1px solid rgba(0,0,0,.06);margin-top:12px}.pack-action-btn{padding:9px 18px;border-radius:10px;font-size:.85rem;font-weight:600;cursor:pointer;border:1.5px solid;transition:all .2s}.pack-action-add{background:var(--primary);border-color:var(--primary);color:#fff}.pack-action-add:hover{background:#047857}.pack-action-reset{background:#fff;border-color:rgba(0,0,0,.12);color:var(--muted)}.pack-action-reset:hover{border-color:#ef4444;color:#ef4444}.pack-action-share{background:#fff;border-color:rgba(0,0,0,.12);color:var(--text)}.pack-action-share:hover{border-color:var(--primary);color:var(--primary)}
+.pack-add-icon{width:36px;height:36px;border-radius:10px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}.pack-field-label{font-size:.73rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;display:block}.pack-input{border-radius:10px!important;border:1.5px solid rgba(0,0,0,.09)!important;font-size:.88rem!important}.pack-input:focus{border-color:var(--primary)!important;box-shadow:0 0 0 3px rgba(5,150,105,.12)!important}
+</style>
+
+<script>
+function toggleCat(h){h.classList.toggle('collapsed');h.nextElementSibling.style.display=h.classList.contains('collapsed')?'none':'';}
+document.getElementById('packSearch').addEventListener('input',function(){const q=this.value.toLowerCase();document.querySelectorAll('.pack-item-row').forEach(r=>{r.style.display=(!q||r.dataset.name.includes(q))?'':'none';});});
+document.getElementById('filterSelect').addEventListener('change',function(){const v=this.value;document.querySelectorAll('.pack-item-row').forEach(r=>{r.style.display=(v==='all'||r.dataset.packed===v)?'':'none';});});
+document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.toggle-packed').forEach(cb=>{cb.addEventListener('change',function(){fetch('/packing/toggle/'+this.dataset.id,{method:'POST',headers:{'Content-Type':'application/json'}}).then(r=>r.json()).then(d=>{if(d.success)window.location.reload();});});});});
+</script>
+{% endblock %}
