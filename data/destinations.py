@@ -806,8 +806,10 @@ def _normalize_place_record(place: dict, destination: str, index: int = 0) -> di
     image_url = place.get("image_url") or _fallback_place_image(destination, category)
     distance = place.get("distance") or f"{(index + 1) * 1.2:.1f} km from city center"
     price = place.get("price")
+    normalized_id = place.get("id") or f"place_{index + 1}"
     return {
-        "id": place.get("id") or f"place_{index + 1}",
+        "id": normalized_id,
+        "place_id": normalized_id,
         "name": name,
         "description": description,
         "best_time": place.get("best_time") or "Year-round",
@@ -822,6 +824,83 @@ def _normalize_place_record(place: dict, destination: str, index: int = 0) -> di
     }
 
 
+def _filter_places_by_category(places: list, category_type: str) -> list:
+    category_type = category_type.lower() if category_type else ""
+    def matches(place_category: str) -> bool:
+        cat = (place_category or "").lower()
+        if category_type == "hotels":
+            return any(term in cat for term in ["hotel", "resort", "inn", "lodge"])
+        if category_type == "shopping":
+            return any(term in cat for term in ["shop", "shopping", "mall", "bazaar", "market"])
+        return False
+
+    return [place for place in places if matches(place.get("category", ""))]
+
+
+def _generic_category_fallback(destination: str, category_type: str) -> list:
+    dest_title = destination.title()
+    if category_type == "hotels":
+        return [
+            {
+                "id": f"{dest_title.lower().replace(' ', '_')}_hotel_1",
+                "name": f"Grand {dest_title} Hotel",
+                "description": f"Comfortable rooms, modern amenities, and easy access to popular attractions in {dest_title}.",
+                "best_time": "Year-round",
+                "duration": "Stay overnight",
+                "category": "Hotel",
+                "time_of_day": ["Morning", "Evening"],
+                "travel_type": ["Family", "Group", "Solo"],
+                "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&auto=format&fit=crop",
+            },
+            {
+                "id": f"{dest_title.lower().replace(' ', '_')}_hotel_2",
+                "name": f"{dest_title} Luxury Resort",
+                "description": f"A premium stay with spa services and stunning views near {dest_title}'s key landmarks.",
+                "best_time": "Year-round",
+                "duration": "Stay overnight",
+                "category": "Hotel",
+                "time_of_day": ["Morning", "Evening"],
+                "travel_type": ["Family", "Couple", "Solo"],
+                "image_url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&auto=format&fit=crop",
+            }
+        ]
+    if category_type == "shopping":
+        return [
+            {
+                "id": f"{dest_title.lower().replace(' ', '_')}_shopping_1",
+                "name": f"{dest_title} Grand Mall",
+                "description": f"A top shopping destination in {dest_title} with both international brands and local boutiques.",
+                "best_time": "Year-round",
+                "duration": "2–4 hours",
+                "category": "Shopping",
+                "time_of_day": ["Afternoon", "Evening"],
+                "travel_type": ["Family", "Group"],
+                "image_url": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&auto=format&fit=crop",
+            },
+            {
+                "id": f"{dest_title.lower().replace(' ', '_')}_shopping_2",
+                "name": f"{dest_title} Market District",
+                "description": f"A bustling market area with street food, souvenirs, and local crafts in {dest_title}.",
+                "best_time": "Afternoon to evening",
+                "duration": "2–3 hours",
+                "category": "Shopping",
+                "time_of_day": ["Afternoon", "Evening"],
+                "travel_type": ["Family", "Solo", "Group"],
+                "image_url": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600&auto=format&fit=crop",
+            }
+        ]
+    return []
+
+
+def _normalize_and_filter_places(destination: str, places: list, category_type: str = None) -> list:
+    if category_type:
+        filtered = _filter_places_by_category(places, category_type)
+        if filtered:
+            return [_normalize_place_record(place, destination, idx) for idx, place in enumerate(filtered)]
+        return [_normalize_place_record(place, destination, idx) for idx, place in enumerate(_generic_category_fallback(destination, category_type))]
+    return [_normalize_place_record(place, destination, idx) for idx, place in enumerate(places)]
+
+
 def get_nearby_attractions(destination: str) -> list:
     """Return attraction cards from local destination data."""
     destination = (destination or '').strip()
@@ -829,7 +908,27 @@ def get_nearby_attractions(destination: str) -> list:
         return []
 
     fallback_places = get_places(destination)
-    return [_normalize_place_record(place, destination, idx) for idx, place in enumerate(fallback_places)]
+    return _normalize_and_filter_places(destination, fallback_places)
+
+
+def get_nearby_hotels(destination: str) -> list:
+    """Return nearby hotel place cards from local destination data."""
+    destination = (destination or '').strip()
+    if not destination:
+        return []
+
+    fallback_places = get_places(destination)
+    return _normalize_and_filter_places(destination, fallback_places, "hotels")
+
+
+def get_nearby_shopping(destination: str) -> list:
+    """Return nearby shopping place cards from local destination data."""
+    destination = (destination or '').strip()
+    if not destination:
+        return []
+
+    fallback_places = get_places(destination)
+    return _normalize_and_filter_places(destination, fallback_places, "shopping")
 
 
 def get_destination_info(destination: str) -> dict:

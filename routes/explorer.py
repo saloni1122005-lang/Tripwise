@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 import requests
 from extensions import db
 from models import Activity, Trip, Expense, ExpenseSplit, Settlement, TripMember, Report, PackingItem
-from data.destinations import get_nearby_attractions, get_supported_destinations, get_destination_info
+from data.destinations import get_nearby_attractions, get_nearby_hotels, get_nearby_shopping, get_supported_destinations, get_destination_info
 from forms.trip_forms import TripForm
 from werkzeug.utils import secure_filename
 
@@ -318,18 +318,19 @@ def api_explore_destination():
         return jsonify(places)
 
     # 2nd Fallback to local hardcoded data if all APIs fail
-    places = get_nearby_attractions(dest)
     if tab == "hotels":
-        places = [place for place in places if place.get("category", "").lower() == "hotel"]
+        places = get_nearby_hotels(dest)
     elif tab == "shopping":
-        places = [place for place in places if place.get("category", "").lower() == "shopping"]
-    
+        places = get_nearby_shopping(dest)
+    else:
+        places = get_nearby_attractions(dest)
+
     # Fill in empty images
     from urllib.parse import quote
     for p in places:
         if not p.get("image_url"):
             p["image_url"] = f"https://loremflickr.com/1200/800/{quote(p['name'])},landscape/all"
-            
+
     return jsonify(places)
 
 

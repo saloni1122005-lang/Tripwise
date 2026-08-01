@@ -532,6 +532,37 @@ a:hover {
     padding: 2rem 1.25rem;
   }
 
+  .dest-banner {
+    height: auto !important;
+    min-height: 220px;
+  }
+
+  .dest-banner .position-absolute.bottom-0 {
+    position: relative !important;
+    padding: 1.25rem !important;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.2));
+  }
+
+  .dest-banner h2,
+  .dest-banner p,
+  .dest-banner .btn {
+    width: 100%;
+  }
+
+  .regional-card-button {
+    height: auto !important;
+    min-height: 180px;
+  }
+
+  .regional-card-button .badge {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+
+  .regional-card-button h5 {
+    font-size: 1rem;
+  }
+
   .feature-card,
   .step-card,
   .benefit-card,
