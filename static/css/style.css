@@ -19,7 +19,6 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  overflow-x: hidden;
 }
 
 h1,
@@ -102,7 +101,6 @@ a:hover {
 .main-content {
   flex: 1;
   padding: 20px;
-  min-width: 0;
 }
 
 .glass-card,
@@ -304,18 +302,15 @@ a:hover {
 }
 
 .auth-wrapper {
-  min-height: calc(100vh - 40px);
+  min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 20px;
-  width: 100%;
+  padding: 24px;
 }
 
 .auth-card {
   width: min(100%, 480px);
-  max-width: 100%;
-  padding: clamp(1.25rem, 3vw, 2rem);
-  margin: 0 auto;
+  padding: 32px;
 }
 
 .trip-cover {
@@ -455,31 +450,6 @@ a:hover {
 }
 
 @media (max-width: 767px) {
-  .app-shell {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    border-right: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-    padding: 16px 14px;
-  }
-
-  .nav-links {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .nav-link {
-    padding: 10px 12px;
-    font-size: 0.92rem;
-  }
-
-  .main-content {
-    padding: 14px;
-  }
   .landing-page {
     margin: -20px -20px 0;
   }
@@ -494,16 +464,6 @@ a:hover {
 
   .cta-panel {
     padding: 2rem 1.25rem;
-  }
-
-  .auth-wrapper {
-    min-height: auto;
-    padding: 12px;
-  }
-
-  .auth-card {
-    width: 100%;
-    padding: 1.25rem;
   }
 }
 
@@ -550,62 +510,132 @@ a:hover {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   color: var(--text);
 }
+
 .hover-lift:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.10) !important;
   color: var(--primary);
 }
+
 .fw-600 {
   font-weight: 600;
   font-size: 0.9rem;
 }
-@media (max-width: 768px) {
 
-  .login-container {
-    width: 100%;
-    flex-direction: column;
-    margin: 20px auto;
-    border-radius: 16px;
+/* ===========================
+   TABLET
+=========================== */
+@media (max-width: 992px) {
+
+  .landing-hero {
+    padding: 60px 20px;
   }
 
-  .login-left,
-  .login-right {
-    width: 100%;
-  }
-
-  .login-left {
-    height: 250px;
-  }
-
-  .login-right {
-    padding: 25px 20px;
-  }
-
-  .overlay h1 {
-    font-size: 28px;
-  }
-
-  .overlay p {
-    font-size: 15px;
+  .display-3 {
+    font-size: 2.7rem;
   }
 
   .hero-panel {
     margin-top: 30px;
   }
 
-  .preview-stack {
-    grid-template-columns: 1fr;
+}
+
+/* ===========================
+   Mobile Responsive
+=========================== */
+@media (max-width:768px) {
+
+  /* Hide desktop sidebar */
+  .sidebar {
+    display: none;
   }
 
-  .feature-card,
-  .step-card,
-  .benefit-card,
-  .preview-card {
-    margin-bottom: 20px;
-  }
-
-  .btn {
+  /* Main content */
+  .main-content {
     width: 100%;
-    margin-bottom: 10px;
+    padding: 15px;
+  }
+
+  /* Top Navbar */
+  .navbar {
+    background: var(--primary) !important;
+    padding: 12px 16px;
+  }
+
+  .navbar-brand {
+    color: #fff !important;
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  .navbar-brand i {
+    margin-right: 8px;
+  }
+
+  .navbar-toggler {
+    border: none;
+    box-shadow: none;
+  }
+
+  .navbar-toggler:focus {
+    box-shadow: none;
+  }
+
+  .navbar-toggler-icon {
+    filter: invert(1);
+  }
+
+  /* Offcanvas Menu */
+  .offcanvas {
+    background: var(--primary);
+    color: #fff;
+    width: 260px;
+  }
+
+  .offcanvas-header {
+    border-bottom: 1px solid rgba(255, 255, 255, .15);
+  }
+
+  .offcanvas-title {
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .offcanvas .btn-close {
+    filter: invert(1);
+  }
+
+  /* Menu Links */
+  .offcanvas .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 14px 16px;
+    border-radius: 12px;
+    transition: .3s;
+  }
+
+  .offcanvas .nav-link i {
+    width: 22px;
+    text-align: center;
+  }
+
+  .offcanvas .nav-link:hover,
+  .offcanvas .nav-link.active {
+    background: rgba(255, 255, 255, .18);
+    color: #fff;
+  }
+
+  .offcanvas .danger {
+    color: #ffd4d4;
+  }
+
+  .offcanvas .danger:hover {
+    background: rgba(255, 255, 255, .18);
+    color: #fff;
   }
 }
