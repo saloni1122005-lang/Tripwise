@@ -19,6 +19,7 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 h1,
@@ -301,15 +302,18 @@ a:hover {
 }
 
 .auth-wrapper {
-  min-height: 100vh;
+  min-height: calc(100vh - 40px);
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: 20px;
+  width: 100%;
 }
 
 .auth-card {
   width: min(100%, 480px);
-  padding: 32px;
+  max-width: 100%;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  margin: 0 auto;
 }
 
 .trip-cover {
@@ -463,6 +467,16 @@ a:hover {
 
   .cta-panel {
     padding: 2rem 1.25rem;
+  }
+
+  .auth-wrapper {
+    min-height: auto;
+    padding: 12px;
+  }
+
+  .auth-card {
+    width: 100%;
+    padding: 1.25rem;
   }
 }
 
