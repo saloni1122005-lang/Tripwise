@@ -371,6 +371,11 @@ a:hover {
   color: var(--hero-dark);
 }
 
+.landing-page .btn-outline-light {
+  color: white;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
 .login-container {
   width: 1000px;
   max-width: 95%;
