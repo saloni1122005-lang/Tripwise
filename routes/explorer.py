@@ -175,53 +175,69 @@ def api_attractions():
 
 # ── Explore Destination (3-tab: Attractions / Hotels / Restaurants) ────────────
 
-def get_google_places(destination: str, query: str) -> list:
+def get_google_places(destination: str, query: str, tab: str) -> list:
     """Fetch places from Google Text Search API."""
     import os
     from dotenv import load_dotenv
-    load_dotenv()  # Reloads .env in case user just added the key without restarting server
-    
+    load_dotenv()  # Reloads .env in case the key was added without restarting the server
+
     api_key = os.getenv("GOOGLE_PLACES_API_KEY") or current_app.config.get("GOOGLE_PLACES_API_KEY")
     if not api_key:
         print("DEBUG: GOOGLE_PLACES_API_KEY is missing!")
         return []
-    
+
     search_url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
     params = {
         "query": f"{query} in {destination}",
         "key": api_key
     }
-    
+
     places = []
     try:
-        resp = requests.get(search_url, params=params, timeout=5)
+        resp = requests.get(search_url, params=params, timeout=8)
         data = resp.json()
-        if data.get("status") == "OK":
-            for idx, result in enumerate(data.get("results", [])[:12]):
-                photo_ref = ""
-                if result.get("photos"):
-                    photo_ref = result["photos"][0]["photo_reference"]
-                
-                image_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference={photo_ref}&key={api_key}" if photo_ref else ""
-                
-                places.append({
-                    "id": result.get("place_id", f"google_{idx}"),
-                    "name": result.get("name"),
-                    "description": result.get("formatted_address", ""),
-                    "best_time": "Year-round",
-                    "duration": "Variable",
-                    "category": query.title(),
-                    "rating": result.get("rating", 4.0),
-                    "address": result.get("formatted_address", ""),
-                    "opening_status": "Open Now" if result.get("opening_hours", {}).get("open_now") else "",
-                    "image_url": image_url,
-                    "distance": "",
-                    "maps_url": f"https://www.google.com/maps/place/?q=place_id:{result.get('place_id')}",
-                    "place_id": result.get("place_id")
-                })
+        status = data.get("status")
+        if status != "OK":
+            if status != "ZERO_RESULTS":
+                print(f"Google Places API returned {status} for {destination}: {data.get('error_message')}")
+            return []
+
+        for idx, result in enumerate(data.get("results", [])[:12]):
+            photo_ref = ""
+            if result.get("photos"):
+                photo_ref = result["photos"][0].get("photo_reference", "")
+
+            image_url = (
+                f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference={photo_ref}&key={api_key}"
+                if photo_ref else ""
+            )
+
+            category_label = "Tourist Attraction"
+            if tab == "hotels":
+                category_label = "Hotel"
+            elif tab == "shopping":
+                category_label = "Shopping"
+            elif result.get("types"):
+                category_label = " ".join(result.get("types")[:2]).title()
+
+            places.append({
+                "id": result.get("place_id", f"google_{idx}"),
+                "place_id": str(result.get("place_id", f"google_{idx}")),
+                "name": result.get("name"),
+                "description": result.get("formatted_address", ""),
+                "best_time": "Year-round",
+                "duration": "Variable",
+                "category": category_label,
+                "rating": result.get("rating", 4.0),
+                "address": result.get("formatted_address", ""),
+                "opening_status": "Open Now" if result.get("opening_hours", {}).get("open_now") else "",
+                "image_url": image_url,
+                "distance": "",
+                "maps_url": f"https://www.google.com/maps/place/?q=place_id:{result.get('place_id')}",
+            })
     except Exception as e:
         print(f"Google Places Text Search API Error for {destination}: {e}")
-    
+
     return places
 
 
@@ -299,11 +315,11 @@ def api_explore_destination():
     if api_key:
         query_map = {
             "attractions": "Tourist attractions",
-            "hotels": "Hotels and resorts",
-            "shopping": "Shopping malls and markets"
+            "hotels": "Hotels",
+            "shopping": "Shopping malls"
         }
         query = query_map.get(tab, "Tourist attractions")
-        places = get_google_places(dest, query)
+        places = get_google_places(dest, query, tab)
         if places:
             # Fallback for empty images to generic loremflickr
             from urllib.parse import quote

@@ -16,4 +16,5 @@ class Config:
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")   # your Gmail address
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")   # your Gmail App Password
     MAIL_DEFAULT_SENDER = os.getenv("MAIL_USERNAME")
+    GOOGLE_PLACES_API_KEY = os.getenv("GOOGLE_PLACES_API_KEY")  # Optional: use Google Places for accurate destination data
 
