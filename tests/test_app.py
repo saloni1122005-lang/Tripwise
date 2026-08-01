@@ -7,11 +7,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from app import app
 
 
-def test_home_redirects_to_login():
+def test_home_displays_landing_page():
     client = app.test_client()
     response = client.get("/", follow_redirects=False)
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/login")
+    assert response.status_code == 200
+    assert b"Plan Smarter. Travel Better." in response.data
+    assert b"TripWise" in response.data
 
 
 def test_login_page_loads():

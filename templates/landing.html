@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="landing-page">
+  <div class="landing-hero">
+    <div class="container py-5 py-lg-6">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-7">
+          <div class="hero-badge">
+            <i class="fa-solid fa-sparkles me-2"></i>
+            Smart Travel Planning
+          </div>
+          <h1 class="display-3 fw-bold text-white mb-4">Plan Smarter. Travel Better.</h1>
+          <p class="hero-copy lead mb-4">
+            TripWise helps you plan trips, manage budgets, create itineraries, track expenses,
+            organize packing lists, and explore destinations in one beautifully simple workspace.
+          </p>
+          <div class="d-flex flex-wrap gap-3 mb-5">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4 py-3 rounded-pill shadow-lg">
+              <i class="fa-solid fa-rocket me-2"></i>Get Started
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-4 py-3 rounded-pill">
+              <i class="fa-solid fa-arrow-right-to-bracket me-2"></i>Login
+            </a>
+          </div>
+          <div class="hero-stats row g-3">
+            <div class="col-sm-4">
+              <div class="stat-pill">
+                <strong>10k+</strong>
+                <span>Happy Travelers</span>
+              </div>
+            </div>
+            <div class="col-sm-4">
+              <div class="stat-pill">
+                <strong>24/7</strong>
+                <span>Trip Access</span>
+              </div>
+            </div>
+            <div class="col-sm-4">
+              <div class="stat-pill">
+                <strong>100%</strong>
+                <span>Responsive</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="hero-panel glass-card p-4 p-lg-5">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+              <div>
+                <p class="eyebrow mb-1">Preview</p>
+                <h3 class="mb-0">Your next adventure starts here</h3>
+              </div>
+              <div class="hero-icon">
+                <i class="fa-solid fa-plane-departure"></i>
+              </div>
+            </div>
+            <div class="preview-stack">
+              <div class="preview-item">
+                <i class="fa-solid fa-map-location-dot"></i>
+                <div>
+                  <strong>Smart itinerary</strong>
+                  <p>Build your perfect travel day in minutes.</p>
+                </div>
+              </div>
+              <div class="preview-item">
+                <i class="fa-solid fa-wallet"></i>
+                <div>
+                  <strong>Budget control</strong>
+                  <p>Stay on top of every expense with clarity.</p>
+                </div>
+              </div>
+              <div class="preview-item">
+                <i class="fa-solid fa-suitcase-rolling"></i>
+                <div>
+                  <strong>Always packed</strong>
+                  <p>Track essentials for solo or group travel.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container py-5">
+    <div class="section-heading text-center mb-5">
+      <p class="eyebrow">Features</p>
+      <h2 class="display-6 fw-bold">Everything you need for your perfect journey</h2>
+      <p class="text-muted mx-auto" style="max-width: 700px;">
+        From idea to arrival, TripWise brings planning, budgeting, and discovery into one elegant experience.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card glass-card h-100 p-4">
+          <div class="feature-icon"><i class="fa-solid fa-route"></i></div>
+          <h4>Trip Planning</h4>
+          <p>Create memorable journeys with all your details organized in a single place.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card glass-card h-100 p-4">
+          <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <h4>Smart Budget Tracking</h4>
+          <p>Keep your costs transparent with real-time spending visibility.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card glass-card h-100 p-4">
+          <div class="feature-icon"><i class="fa-solid fa-magic"></i></div>
+          <h4>AI Itinerary Planner</h4>
+          <p>Let TripWise help structure your days with smart, styled itineraries.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card glass-card h-100 p-4">
+          <div class="feature-icon"><i class="fa-solid fa-suitcase"></i></div>
+          <h4>Packing Checklist</h4>
+          <p>Stay prepared with a beautifully simple packing list for every trip.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card glass-card h-100 p-4">
+          <div class="feature-icon"><i class="fa-solid fa-users"></i></div>
+          <h4>Group Expense Split</h4>
+          <p>Share costs smoothly and keep every traveler in sync.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="feature-card glass-card h-100 p-4">
+          <div class="feature-icon"><i class="fa-solid fa-compass"></i></div>
+          <h4>Destination Explorer</h4>
+          <p>Discover hidden gems and local highlights before you depart.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container py-5">
+    <div class="section-heading text-center mb-5">
+      <p class="eyebrow">How it works</p>
+      <h2 class="display-6 fw-bold">A seamless experience from start to finish</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="step-card glass-card p-4 h-100 text-center">
+          <div class="step-number">1</div>
+          <h4>Create an Account</h4>
+          <p>Sign up in seconds and unlock your personal travel dashboard.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="step-card glass-card p-4 h-100 text-center">
+          <div class="step-number">2</div>
+          <h4>Create Your Trip</h4>
+          <p>Set your destination, dates, and budget to get everything started.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="step-card glass-card p-4 h-100 text-center">
+          <div class="step-number">3</div>
+          <h4>Plan and Manage Everything</h4>
+          <p>Handle itinerary, expenses, and packing from one modern workspace.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="step-card glass-card p-4 h-100 text-center">
+          <div class="step-number">4</div>
+          <h4>Enjoy Your Journey</h4>
+          <p>Travel with confidence knowing every detail is under control.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container py-5">
+    <div class="section-heading text-center mb-5">
+      <p class="eyebrow">Why TripWise</p>
+      <h2 class="display-6 fw-bold">Built for modern travelers and groups</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-sm-6 col-lg-4">
+        <div class="benefit-card glass-card p-4 h-100">
+          <i class="fa-solid fa-bolt"></i>
+          <h4>Easy to Use</h4>
+          <p>Simple navigation and thoughtful layouts that feel effortless.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <div class="benefit-card glass-card p-4 h-100">
+          <i class="fa-solid fa-shield-halved"></i>
+          <h4>Secure</h4>
+          <p>Your trip plans and personal data stay organized and protected.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <div class="benefit-card glass-card p-4 h-100">
+          <i class="fa-solid fa-gauge-high"></i>
+          <h4>Fast</h4>
+          <p>Better planning with fast access to every essential trip tool.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <div class="benefit-card glass-card p-4 h-100">
+          <i class="fa-solid fa-people-group"></i>
+          <h4>Works for Solo and Group Trips</h4>
+          <p>Flexible enough for personal travel and shared adventures alike.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container py-5">
+    <div class="section-heading text-center mb-5">
+      <p class="eyebrow">Screenshots Preview</p>
+      <h2 class="display-6 fw-bold">A glimpse into your smart travel workspace</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4">
+        <div class="preview-card glass-card p-4 h-100">
+          <div class="preview-card-top">
+            <i class="fa-solid fa-table-columns"></i>
+            <span>Dashboard</span>
+          </div>
+          <div class="preview-card-body">
+            <h4>Travel overview</h4>
+            <p>Your trips, budgets, and priorities in one clear view.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="preview-card glass-card p-4 h-100">
+          <div class="preview-card-top">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Budget</span>
+          </div>
+          <div class="preview-card-body">
+            <h4>Spend with confidence</h4>
+            <p>Track every expense and stay on top of your forecast.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="preview-card glass-card p-4 h-100">
+          <div class="preview-card-top">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>Itinerary</span>
+          </div>
+          <div class="preview-card-body">
+            <h4>Organized days</h4>
+            <p>Shape your travel plans into an engaging, accessible itinerary.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="preview-card glass-card p-4 h-100">
+          <div class="preview-card-top">
+            <i class="fa-solid fa-suitcase-rolling"></i>
+            <span>Packing List</span>
+          </div>
+          <div class="preview-card-body">
+            <h4>Packed and ready</h4>
+            <p>Never forget the essentials again with smart reminders.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="preview-card glass-card p-4 h-100">
+          <div class="preview-card-top">
+            <i class="fa-solid fa-compass"></i>
+            <span>Explorer</span>
+          </div>
+          <div class="preview-card-body">
+            <h4>Discover more</h4>
+            <p>Explore destination highlights and inspiration before you go.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="preview-card glass-card p-4 h-100">
+          <div class="preview-card-top">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Everything in one place</span>
+          </div>
+          <div class="preview-card-body">
+            <h4>One flow, every detail</h4>
+            <p>Keep your planning experience calm, clear, and exciting.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container py-5">
+    <div class="cta-panel glass-card p-5 text-center">
+      <p class="eyebrow">Ready to begin?</p>
+      <h2 class="display-6 fw-bold mb-3">Ready to plan your next adventure?</h2>
+      <p class="text-muted mb-4 mx-auto" style="max-width: 650px;">
+        Join TripWise today and turn ideas into a beautifully organized journey.
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-3">
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4 py-3 rounded-pill shadow-lg">
+          <i class="fa-solid fa-user-plus me-2"></i>Create Free Account
+        </a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg px-4 py-3 rounded-pill">
+          <i class="fa-solid fa-arrow-right-to-bracket me-2"></i>Login
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <footer class="landing-footer">
+    <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 py-4">
+      <div class="d-flex flex-wrap gap-3">
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+        <a href="#">Privacy Policy</a>
+        <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <div class="text-muted">© 2026 TripWise</div>
+    </div>
+  </footer>
+</section>
+{% endblock %}
