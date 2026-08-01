@@ -71,7 +71,7 @@ def register():
         db.session.commit()
         login_user(user)
         flash("Account created successfully. Your trip dashboard is ready.", "success")
-        return redirect(url_for("explorer.hub"))
+        return redirect(url_for("main.dashboard"))
     return render_template("register.html", form=form)
 
 
