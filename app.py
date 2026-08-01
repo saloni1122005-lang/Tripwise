@@ -38,6 +38,8 @@ app.register_blueprint(packing_bp)
 app.register_blueprint(explorer_bp)
 
 with app.app_context():
+    db.create_all()   # Pehle saari tables create karo
+
     from migrate import run_migrations
     run_migrations()
 

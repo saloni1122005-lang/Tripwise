@@ -7,15 +7,22 @@ def run_migrations():
     """Apply incremental schema changes to an existing SQLite database."""
     inspector = inspect(db.engine)
 
-    columns = [col["name"] for col in inspector.get_columns("trips")]
-    if "trip_type" not in columns:
-        db.session.execute(
-            text(
-                "ALTER TABLE trips ADD COLUMN trip_type VARCHAR(10) NOT NULL DEFAULT 'group'"
+    # Create all tables first
+    db.create_all()
+
+    existing_tables = inspector.get_table_names()
+
+    if "trips" in existing_tables:
+        columns = [col["name"] for col in inspector.get_columns("trips")]
+
+        if "trip_type" not in columns:
+            db.session.execute(
+                text(
+                    "ALTER TABLE trips ADD COLUMN trip_type VARCHAR(10) NOT NULL DEFAULT 'group'"
+                )
             )
-        )
-        db.session.commit()
-        print("Added trip_type column to trips table.")
+            db.session.commit()
+            print("Added trip_type column to trips table.")
 
     existing_tables = inspector.get_table_names()
 
@@ -37,7 +44,7 @@ def run_migrations():
             db.session.commit()
             print("Added display_name column to trip_members table.")
 
-    db.create_all()
+    
 
 
 if __name__ == "__main__":
