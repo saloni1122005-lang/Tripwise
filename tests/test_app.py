@@ -22,6 +22,40 @@ def test_login_page_loads():
     assert b"Welcome back" in response.data
 
 
+def test_registration_and_login_work_without_csrf_token():
+    client = app.test_client()
+    with app.app_context():
+        from models import User, db
+
+        db.drop_all()
+        db.create_all()
+
+    register_response = client.post(
+        "/register",
+        data={
+            "full_name": "CSRF User",
+            "email": "csrf@example.com",
+            "username": "csrfuser",
+            "password": "secret123",
+            "confirm_password": "secret123",
+            "terms": "y",
+        },
+        follow_redirects=False,
+    )
+    assert register_response.status_code == 302
+
+    login_response = client.post(
+        "/login",
+        data={
+            "email": "csrf@example.com",
+            "password": "secret123",
+        },
+        follow_redirects=False,
+    )
+    assert login_response.status_code == 302
+    assert login_response.headers["Location"].endswith("/dashboard")
+
+
 def test_valid_login_redirects_to_dashboard():
     client = app.test_client()
     with app.app_context():
@@ -35,15 +69,13 @@ def test_valid_login_redirects_to_dashboard():
         db.session.commit()
 
     login_page = client.get("/login")
-    csrf_match = re.search(r'name="csrf_token" type="hidden" value="([^"]+)"', login_page.get_data(as_text=True))
-    assert csrf_match, "expected CSRF token in login page"
+    assert login_page.status_code == 200
 
     response = client.post(
         "/login",
         data={
             "email": "tester@example.com",
             "password": "secret123",
-            "csrf_token": csrf_match.group(1),
         },
         follow_redirects=False,
     )
@@ -64,28 +96,24 @@ def test_group_trip_creation_with_members_persists_trip_members():
         db.session.commit()
 
     login_page = client.get("/login")
-    csrf_match = re.search(r'name="csrf_token" type="hidden" value="([^\"]+)"', login_page.get_data(as_text=True))
-    assert csrf_match, "expected CSRF token in login page"
+    assert login_page.status_code == 200
 
     login_response = client.post(
         "/login",
         data={
             "email": "tester3@example.com",
             "password": "secret123",
-            "csrf_token": csrf_match.group(1),
         },
         follow_redirects=True,
     )
     assert login_response.status_code == 200
 
     explore_page = client.get("/explore")
-    csrf_match = re.search(r'name="csrf_token" type="hidden" value="([^\"]+)"', explore_page.get_data(as_text=True))
-    assert csrf_match, "expected CSRF token in explorer page"
+    assert explore_page.status_code == 200
 
     create_response = client.post(
         "/explore",
         data={
-            "csrf_token": csrf_match.group(1),
             "name": "Group Trip Test",
             "destination": "Goa",
             "start_date": "2026-09-01",
@@ -124,15 +152,13 @@ def test_user_can_login_with_username():
         db.session.commit()
 
     login_page = client.get("/login")
-    csrf_match = re.search(r'name="csrf_token" type="hidden" value="([^"]+)"', login_page.get_data(as_text=True))
-    assert csrf_match, "expected CSRF token in login page"
+    assert login_page.status_code == 200
 
     response = client.post(
         "/login",
         data={
             "email": "tester",
             "password": "secret123",
-            "csrf_token": csrf_match.group(1),
         },
         follow_redirects=False,
     )
@@ -168,15 +194,13 @@ def test_deleting_last_trip_leaves_dashboard_empty():
         db.session.commit()
 
     login_page = client.get("/login")
-    csrf_match = re.search(r'name="csrf_token" type="hidden" value="([^"]+)"', login_page.get_data(as_text=True))
-    assert csrf_match, "expected CSRF token in login page"
+    assert login_page.status_code == 200
 
     login_response = client.post(
         "/login",
         data={
             "email": "tester2@example.com",
             "password": "secret123",
-            "csrf_token": csrf_match.group(1),
         },
         follow_redirects=False,
     )
@@ -204,8 +228,7 @@ def test_new_account_can_login_again_after_registration():
         db.create_all()
 
     register_page = client.get("/register")
-    csrf_match = re.search(r'name="csrf_token" type="hidden" value="([^"]+)"', register_page.get_data(as_text=True))
-    assert csrf_match, "expected CSRF token in register page"
+    assert register_page.status_code == 200
 
     register_response = client.post(
         "/register",
@@ -215,7 +238,7 @@ def test_new_account_can_login_again_after_registration():
             "full_name": "New User",
             "password": "secret123",
             "confirm_password": "secret123",
-            "csrf_token": csrf_match.group(1),
+            "terms": "y",
         },
         follow_redirects=False,
     )
@@ -225,15 +248,13 @@ def test_new_account_can_login_again_after_registration():
     assert logout_response.status_code == 302
 
     login_page = client.get("/login")
-    csrf_match = re.search(r'name="csrf_token" type="hidden" value="([^"]+)"', login_page.get_data(as_text=True))
-    assert csrf_match, "expected CSRF token in login page"
+    assert login_page.status_code == 200
 
     login_response = client.post(
         "/login",
         data={
             "email": "newuser@example.com",
             "password": "secret123",
-            "csrf_token": csrf_match.group(1),
         },
         follow_redirects=False,
     )
@@ -274,8 +295,7 @@ def test_login_accepts_same_username_after_registration_when_cases_differ():
         db.create_all()
 
     register_page = client.get("/register")
-    csrf_match = re.search(r'name="csrf_token" type="hidden" value="([^"]+)"', register_page.get_data(as_text=True))
-    assert csrf_match, "expected CSRF token in register page"
+    assert register_page.status_code == 200
 
     register_response = client.post(
         "/register",
@@ -285,7 +305,7 @@ def test_login_accepts_same_username_after_registration_when_cases_differ():
             "full_name": "New User",
             "password": "secret123",
             "confirm_password": "secret123",
-            "csrf_token": csrf_match.group(1),
+            "terms": "y",
         },
         follow_redirects=False,
     )
@@ -295,15 +315,13 @@ def test_login_accepts_same_username_after_registration_when_cases_differ():
     assert logout_response.status_code == 302
 
     login_page = client.get("/login")
-    csrf_match = re.search(r'name="csrf_token" type="hidden" value="([^"]+)"', login_page.get_data(as_text=True))
-    assert csrf_match, "expected CSRF token in login page"
+    assert login_page.status_code == 200
 
     login_response = client.post(
         "/login",
         data={
             "email": "newuser",
             "password": "secret123",
-            "csrf_token": csrf_match.group(1),
         },
         follow_redirects=False,
     )

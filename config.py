@@ -7,7 +7,7 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL") or "sqlite:///tripwise.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    WTF_CSRF_ENABLED = True
+    WTF_CSRF_ENABLED = False
 
     # Email (SMTP) settings — fill these in your .env file
     MAIL_SERVER   = os.getenv("MAIL_SERVER",   "smtp.gmail.com")

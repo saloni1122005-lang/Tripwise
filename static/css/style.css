@@ -52,6 +52,7 @@ a:hover {
   background: var(--primary);
   color: white;
   border-right: 1px solid rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
 }
 
 .brand {
@@ -101,6 +102,7 @@ a:hover {
 .main-content {
   flex: 1;
   padding: 20px;
+  min-width: 0;
 }
 
 .glass-card,
@@ -453,6 +455,31 @@ a:hover {
 }
 
 @media (max-width: 767px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    padding: 16px 14px;
+  }
+
+  .nav-links {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .nav-link {
+    padding: 10px 12px;
+    font-size: 0.92rem;
+  }
+
+  .main-content {
+    padding: 14px;
+  }
   .landing-page {
     margin: -20px -20px 0;
   }
@@ -531,4 +558,54 @@ a:hover {
 .fw-600 {
   font-weight: 600;
   font-size: 0.9rem;
+}
+@media (max-width: 768px) {
+
+  .login-container {
+    width: 100%;
+    flex-direction: column;
+    margin: 20px auto;
+    border-radius: 16px;
+  }
+
+  .login-left,
+  .login-right {
+    width: 100%;
+  }
+
+  .login-left {
+    height: 250px;
+  }
+
+  .login-right {
+    padding: 25px 20px;
+  }
+
+  .overlay h1 {
+    font-size: 28px;
+  }
+
+  .overlay p {
+    font-size: 15px;
+  }
+
+  .hero-panel {
+    margin-top: 30px;
+  }
+
+  .preview-stack {
+    grid-template-columns: 1fr;
+  }
+
+  .feature-card,
+  .step-card,
+  .benefit-card,
+  .preview-card {
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    width: 100%;
+    margin-bottom: 10px;
+  }
 }
